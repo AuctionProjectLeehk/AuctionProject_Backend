@@ -1,6 +1,7 @@
 package com.leehk.auction.domain.auction.domain;
 
 import com.leehk.auction.domain.auction.enums.AuctionStatus;
+import com.leehk.auction.domain.bid.domain.Bid;
 import com.leehk.auction.global.response.CustomException;
 import com.leehk.auction.global.response.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -33,6 +34,61 @@ class AuctionTest {
 
         // then
         assertThat(auction.getCurrentPrice()).isEqualTo(11000L);
+    }
+
+    @Test
+    @DisplayName("정상 입찰 - 입찰자 확인")
+    void placeBid_Success_Bidder() {
+        // given
+        Auction auction = Auction.builder()
+                .id(1L)
+                .title("test 경매")
+                .description("test 설명")
+                .startPrice(1000L)
+                .currentPrice(10000L)
+                .startTime(LocalDateTime.now())
+                .endTime(LocalDateTime.now().plusDays(1))
+                .status(AuctionStatus.ONGOING)
+                .build();
+
+        Bid bid1 = new Bid(1L, 11000L, auction);
+
+        // when
+        auction.placeBid(1L, 11000L);
+
+        // then
+        assertThat(auction.getBids().get(0).getBidderId()).isEqualTo(1L);
+    }
+    
+    @Test
+    @DisplayName("정상 입찰 - 입찰자가 여러명인 경우, 총 인원과 최대 입찰자 확인")
+    void getBidsAndGetHighestBidderIdTest() {
+        // given
+        Auction auction = Auction.builder()
+                .id(1L)
+                .title("test 경매")
+                .description("test 설명")
+                .startPrice(1000L)
+                .currentPrice(10000L)
+                .startTime(LocalDateTime.now())
+                .endTime(LocalDateTime.now().plusDays(1))
+                .status(AuctionStatus.ONGOING)
+                .build();
+
+        Bid bid1 = new Bid(1L, 11000L, auction);
+        Bid bid2 = new Bid(3L, 12000L, auction);
+        Bid bid3 = new Bid(6L, 13000L, auction);
+        Bid bid4 = new Bid(5L, 14000L, auction);
+
+        // when
+        auction.placeBid(1L, 11000L);
+        auction.placeBid(3L, 12000L);
+        auction.placeBid(6L, 13000L);
+        auction.placeBid(5L, 14000L);
+
+        // then
+        assertThat(auction.getBids().size()).isEqualTo(4);
+        assertThat(auction.getHighestBidderId()).isEqualTo(5L);
     }
 
     @Test

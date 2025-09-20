@@ -42,6 +42,16 @@ public class AuctionEntity {
     @Column(nullable = false)
     private AuctionStatus status;
 
+    public void update(AuctionEntity auctionEntity) {
+        this.title = auctionEntity.getTitle();
+        this.description = auctionEntity.getDescription();
+        this.startPrice = auctionEntity.getStartPrice();
+        this.currentPrice = auctionEntity.getCurrentPrice();
+        this.startTime = auctionEntity.getStartTime();
+        this.endTime = auctionEntity.getEndTime();
+        this.status = auctionEntity.getStatus();
+    }
+
     public void updateFromDomain(Auction auction) {
         this.title = auction.getTitle();
         this.description = auction.getDescription();

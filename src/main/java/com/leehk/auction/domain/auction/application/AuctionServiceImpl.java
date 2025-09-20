@@ -74,7 +74,7 @@ public class AuctionServiceImpl implements AuctionService {
                 .orElseThrow(() -> new CustomException(ErrorCode.AUCTION_NOT_FOUND));
 
         Auction auction = AuctionConverter.EntityToDomain(auctionEntity);
-        auction.placeBid(bidPrice);
+        auction.placeBid(auctionId, bidPrice);
         auctionEntity.updateFromDomain(auction);
 
         return AuctionConverter.DomainToDto(auction);

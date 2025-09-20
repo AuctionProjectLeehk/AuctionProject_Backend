@@ -29,7 +29,7 @@ class AuctionTest {
                 .build();
 
         // when
-        auction.placeBid(11000L);
+        auction.placeBid(1L, 11000L);
 
         // then
         assertThat(auction.getCurrentPrice()).isEqualTo(11000L);
@@ -51,7 +51,7 @@ class AuctionTest {
                 .build();
 
         // when and then
-        assertThatThrownBy(() -> auction.placeBid(9000L))
+        assertThatThrownBy(() -> auction.placeBid(1L, 9000L))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.BID_TOO_LOW.getMessage());
     }
@@ -72,7 +72,7 @@ class AuctionTest {
                 .build();
 
         // when and then
-        assertThatThrownBy(() -> auction.placeBid(11000L))
+        assertThatThrownBy(() -> auction.placeBid(1L, 11000L))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.AUCTION_ALREADY_ENDED.getMessage());
     }

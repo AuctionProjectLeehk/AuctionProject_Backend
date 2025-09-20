@@ -18,6 +18,19 @@ public class AuctionConverter {
                 .status(auctionEntity.getStatus())
                 .build();
     }
+    
+    public static AuctionEntity DomainToEntity(Auction auction) {
+        return AuctionEntity.builder()
+                .id(auction.getId())
+                .title(auction.getTitle())
+                .description(auction.getDescription())
+                .startPrice(auction.getStartPrice())
+                .currentPrice(auction.getCurrentPrice())
+                .startTime(auction.getStartTime())
+                .endTime(auction.getEndTime())
+                .status(auction.getStatus())
+                .build();
+    }
 
     public static Auction DtoToDomain(AuctionDto auctionDto) {
         return Auction.builder()

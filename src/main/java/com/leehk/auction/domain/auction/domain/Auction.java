@@ -1,12 +1,15 @@
 package com.leehk.auction.domain.auction.domain;
 
 import com.leehk.auction.domain.auction.enums.AuctionStatus;
+import com.leehk.auction.domain.bid.domain.Bid;
 import com.leehk.auction.global.response.CustomException;
 import com.leehk.auction.global.response.ErrorCode;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Builder
@@ -21,10 +24,18 @@ public class Auction {
     private LocalDateTime endTime;
     private AuctionStatus status;
 
+    // 입찰자 관리
+    private final List<Bid> bids = new ArrayList<>();
+
     // 입찰 처리
-    public void placeBid(long bidPrice) {
+    public Bid placeBid(Long bidderId, long bidPrice) {
         validateBid(bidPrice);
         this.currentPrice = bidPrice;
+
+        Bid bid = new Bid(bidderId, bidPrice, this);
+        bids.add(bid);
+        currentPrice = bidPrice;
+        return bid;
     }
 
     // 입찰 유효성 확인

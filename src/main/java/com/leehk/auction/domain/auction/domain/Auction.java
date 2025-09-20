@@ -9,6 +9,7 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Getter
@@ -44,11 +45,24 @@ public class Auction {
         if (status != AuctionStatus.ONGOING) {
             throw new CustomException(ErrorCode.AUCTION_ALREADY_ENDED);
         }
-        
+
         // 가격이 현재가보다 높은지 확인
         if (bidPrice <= currentPrice) {
             throw new CustomException(ErrorCode.BID_TOO_LOW);
         }
+    }
+
+    // 가장 높은 입찰자의 Id 반환
+    public Long getHighestBidderId() {
+        return bids.stream()
+                .max(Comparator.comparingLong(Bid::getBidPrice))
+                .map(Bid::getBidderId)
+                .orElse(null);
+    }
+
+    // 입찰자 반환
+    public List<Bid> getBids() {
+        return new ArrayList<>(bids);
     }
 
     // 경매 종료 처리

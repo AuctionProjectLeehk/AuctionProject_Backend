@@ -33,7 +33,11 @@ public class Auction {
         validateBid(bidPrice);
         this.currentPrice = bidPrice;
 
-        Bid bid = new Bid(bidderId, bidPrice, this);
+        Bid bid = Bid.builder()
+                .bidderId(bidderId)
+                .bidPrice(bidPrice)
+                .build();
+
         bids.add(bid);
         currentPrice = bidPrice;
         return bid;

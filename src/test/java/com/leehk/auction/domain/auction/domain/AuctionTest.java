@@ -51,7 +51,11 @@ class AuctionTest {
                 .status(AuctionStatus.ONGOING)
                 .build();
 
-        Bid bid1 = new Bid(1L, 11000L, auction);
+        Bid bid1 = Bid.builder()
+                .id(1L)
+                .bidderId(11000L)
+                .auction(auction)
+                .build();
 
         // when
         auction.placeBid(1L, 11000L);
@@ -74,11 +78,6 @@ class AuctionTest {
                 .endTime(LocalDateTime.now().plusDays(1))
                 .status(AuctionStatus.ONGOING)
                 .build();
-
-        Bid bid1 = new Bid(1L, 11000L, auction);
-        Bid bid2 = new Bid(3L, 12000L, auction);
-        Bid bid3 = new Bid(6L, 13000L, auction);
-        Bid bid4 = new Bid(5L, 14000L, auction);
 
         // when
         auction.placeBid(1L, 11000L);

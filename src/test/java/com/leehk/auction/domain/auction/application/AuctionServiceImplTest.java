@@ -1,5 +1,6 @@
 package com.leehk.auction.domain.auction.application;
 
+import com.leehk.auction.domain.auction.BaseH2Test;
 import com.leehk.auction.domain.auction.domain.Auction;
 import com.leehk.auction.domain.auction.dto.AuctionDto;
 import com.leehk.auction.domain.auction.enums.AuctionStatus;
@@ -18,9 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
 @Transactional
-class AuctionServiceImplTest {
+class AuctionServiceImplTest extends BaseH2Test {
 
     @Autowired
     private AuctionService auctionService;

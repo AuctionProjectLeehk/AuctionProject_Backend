@@ -13,13 +13,8 @@ public class Bid {
     private Long id;
     private Long bidderId;
     private long bidPrice;
-    private LocalDateTime bidTime;
-    private Auction auction;
 
-    public Bid(Long bidderId, long bidPrice, Auction auction) {
-        this.bidderId = bidderId;
-        this.bidPrice = bidPrice;
-        this.auction = auction;
-        this.bidTime = LocalDateTime.now();
-    }
+    @Builder.Default
+    private LocalDateTime bidTime = LocalDateTime.now();
+    private Auction auction;
 }

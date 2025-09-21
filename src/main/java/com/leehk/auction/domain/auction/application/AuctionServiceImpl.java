@@ -22,40 +22,39 @@ public class AuctionServiceImpl implements AuctionService {
     private final AuctionRepository auctionRepository;
 
     @Override
-    public AuctionDto getAuction(Long auctionId) {
+    public Auction getAuction(Long auctionId) {
         AuctionEntity auctionEntity = auctionRepository.findById(auctionId)
                 .orElseThrow(() -> new CustomException(ErrorCode.AUCTION_NOT_FOUND));
 
-        return AuctionConverter.DomainToDto(AuctionConverter.EntityToDomain(auctionEntity));
+        return AuctionConverter.EntityToDomain(auctionEntity);
     }
 
     @Override
-    public List<AuctionDto> getOngoingAuctions() {
+    public List<Auction> getOngoingAuctions() {
         return auctionRepository.findByStatus(AuctionStatus.ONGOING)
                 .stream()
                 .map(AuctionConverter::EntityToDomain)
-                .map(AuctionConverter::DomainToDto)
                 .toList();
     }
 
     @Override
     @Transactional
-    public AuctionDto createAuction(Auction auction) {
+    public Auction createAuction(Auction auction) {
         AuctionEntity auctionEntity = AuctionConverter.DomainToEntity(auction);
 
         AuctionEntity savedAuctionEntity = auctionRepository.save(auctionEntity);
 
-        return AuctionConverter.DomainToDto(AuctionConverter.EntityToDomain(savedAuctionEntity));
+        return AuctionConverter.EntityToDomain(savedAuctionEntity);
     }
 
     @Override
     @Transactional
-    public AuctionDto updateAuction(Long auctionId, Auction Auction) {
+    public Auction updateAuction(Long auctionId, Auction Auction) {
         AuctionEntity auctionEntity = auctionRepository.findById(auctionId)
                 .orElseThrow(() -> new CustomException(ErrorCode.AUCTION_NOT_FOUND));
 
         auctionEntity.updateFromDomain(Auction);
-        return AuctionConverter.DomainToDto(AuctionConverter.EntityToDomain(auctionEntity));
+        return AuctionConverter.EntityToDomain(auctionEntity);
     }
 
     @Override
@@ -69,7 +68,7 @@ public class AuctionServiceImpl implements AuctionService {
 
     @Override
     @Transactional
-    public AuctionDto placeBid(Long auctionId, long bidPrice) {
+    public Auction placeBid(Long auctionId, long bidPrice) {
         AuctionEntity auctionEntity = auctionRepository.findById(auctionId)
                 .orElseThrow(() -> new CustomException(ErrorCode.AUCTION_NOT_FOUND));
 
@@ -77,11 +76,11 @@ public class AuctionServiceImpl implements AuctionService {
         auction.placeBid(auctionId, bidPrice);
         auctionEntity.updateFromDomain(auction);
 
-        return AuctionConverter.DomainToDto(auction);
+        return auction;
     }
 
     @Override
-    public AuctionDto endAuction(Long auctionId) {
+    public Auction endAuction(Long auctionId) {
         AuctionEntity auctionEntity = auctionRepository.findById(auctionId)
                 .orElseThrow(() -> new CustomException(ErrorCode.AUCTION_NOT_FOUND));
 
@@ -89,6 +88,6 @@ public class AuctionServiceImpl implements AuctionService {
         auction.endAuction();
         auctionEntity.updateFromDomain(auction);
 
-        return AuctionConverter.DomainToDto(auction);
+        return auction;
     }
 }

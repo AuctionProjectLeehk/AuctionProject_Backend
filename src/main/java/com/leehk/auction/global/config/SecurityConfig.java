@@ -16,15 +16,16 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/swagger-ui.html",
-                                "/swagger-ui/**",
-                                "/v3/api-docs.yaml",
-                                "/v3/api-docs/**",
-                                "/swagger-resources/**",
-                                "/webjars/**"
-                        ).permitAll()
-                        .anyRequest().authenticated()
+//                        .requestMatchers(
+//                                "/swagger-ui.html",
+//                                "/swagger-ui/**",
+//                                "/v3/api-docs.yaml",
+//                                "/v3/api-docs/**",
+//                                "/swagger-resources/**",
+//                                "/webjars/**"
+//                        ).permitAll()
+//                        .anyRequest().authenticated()
+                                .anyRequest().permitAll()
                 );
 
         return http.build();

@@ -2,7 +2,6 @@ package com.leehk.auction.domain.auction.application;
 
 import com.leehk.auction.domain.auction.BaseH2Test;
 import com.leehk.auction.domain.auction.domain.Auction;
-import com.leehk.auction.domain.auction.dto.AuctionDto;
 import com.leehk.auction.domain.auction.enums.AuctionStatus;
 import com.leehk.auction.domain.auction.infrastructure.AuctionRepository;
 import com.leehk.auction.global.response.CustomException;
@@ -11,22 +10,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
 
 @Transactional
 class AuctionServiceImplTest extends BaseH2Test {
 
     @Autowired
     private AuctionService auctionService;
-
-    @Autowired
-    private AuctionRepository auctionRepository;
 
     private Auction testAuction;
 
@@ -50,8 +44,8 @@ class AuctionServiceImplTest extends BaseH2Test {
         Auction auction = testAuction;
 
         // when
-        AuctionDto created = auctionService.createAuction(auction);
-        AuctionDto found = auctionService.getAuction(created.getId());
+        Auction created = auctionService.createAuction(auction);
+        Auction found = auctionService.getAuction(created.getId());
 
         // then
         assertThat(found.getTitle()).isEqualTo("test 경매");
@@ -62,10 +56,10 @@ class AuctionServiceImplTest extends BaseH2Test {
     @DisplayName("입찰 성공 시 가격이 갱신")
     void placeBid_Success() {
         // given
-        AuctionDto created = auctionService.createAuction(testAuction);
+        Auction created = auctionService.createAuction(testAuction);
 
         // when
-        AuctionDto updated = auctionService.placeBid(created.getId(), 11000L);
+        Auction updated = auctionService.placeBid(created.getId(), 11000L);
 
         // then
         assertThat(updated.getCurrentPrice()).isEqualTo(11000L);
@@ -75,14 +69,14 @@ class AuctionServiceImplTest extends BaseH2Test {
     @DisplayName("여러 번 입찰 시 가격이 순차적으로 갱신")
     void multipleBids_Success() {
         // given
-        AuctionDto created = auctionService.createAuction(testAuction);
+        Auction created = auctionService.createAuction(testAuction);
 
         // when
         auctionService.placeBid(created.getId(), 11000L);
-        AuctionDto afterFirstBid = auctionService.getAuction(created.getId());
+        Auction afterFirstBid = auctionService.getAuction(created.getId());
 
         auctionService.placeBid(created.getId(), 12000L);
-        AuctionDto afterSecondBid = auctionService.getAuction(created.getId());
+        Auction afterSecondBid = auctionService.getAuction(created.getId());
 
         // then
         assertThat(afterFirstBid.getCurrentPrice()).isEqualTo(11000L);
@@ -93,10 +87,10 @@ class AuctionServiceImplTest extends BaseH2Test {
     @DisplayName("경매 종료 성공")
     void endAuctionSuccess() {
         // given
-        AuctionDto created = auctionService.createAuction(testAuction);
+        Auction created = auctionService.createAuction(testAuction);
 
         // when
-        AuctionDto ended = auctionService.endAuction(created.getId());
+        Auction ended = auctionService.endAuction(created.getId());
 
         // then
         assertThat(ended.getStatus()).isEqualTo(AuctionStatus.ENDED);
@@ -118,7 +112,7 @@ class AuctionServiceImplTest extends BaseH2Test {
     @DisplayName("종료된 경매에 입찰 시 예외 발생")
     void placeBid_OnEndedAuction() {
         // given
-        AuctionDto created = auctionService.createAuction(testAuction);
+        Auction created = auctionService.createAuction(testAuction);
         auctionService.endAuction(created.getId());
 
         // when and then
@@ -131,7 +125,7 @@ class AuctionServiceImplTest extends BaseH2Test {
     @DisplayName("현재 가격보다 낮은 가격으로 입찰")
     void placeBid_LowerThanCurrent() {
         // given
-        AuctionDto created = auctionService.createAuction(testAuction);
+        Auction created = auctionService.createAuction(testAuction);
 
         // when and then
         assertThatThrownBy(() -> auctionService.placeBid(created.getId(), 9000L))
@@ -143,7 +137,7 @@ class AuctionServiceImplTest extends BaseH2Test {
     @DisplayName("경매 삭제 후 조회 예외 발생")
     void deleteAuction_ThenGetFail() {
         // given
-        AuctionDto created = auctionService.createAuction(testAuction);
+        Auction created = auctionService.createAuction(testAuction);
 
         // when
         auctionService.deleteAuction(created.getId());

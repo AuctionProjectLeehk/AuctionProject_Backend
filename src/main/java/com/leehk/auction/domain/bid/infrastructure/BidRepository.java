@@ -9,7 +9,7 @@ public interface BidRepository {
 
     BidEntity save(BidEntity bidEntity);
 
-    List<BidEntity> findByAuctionId(Long auctionId);
+    List<BidEntity> findByAuctionEntity_Id(Long auctionId);
 
     void delete(BidEntity bidEntity);
 }

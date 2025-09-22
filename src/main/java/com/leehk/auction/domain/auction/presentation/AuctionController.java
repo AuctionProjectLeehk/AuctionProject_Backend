@@ -3,7 +3,8 @@ package com.leehk.auction.domain.auction.presentation;
 import com.leehk.auction.domain.auction.application.AuctionService;
 import com.leehk.auction.domain.auction.converter.AuctionConverter;
 import com.leehk.auction.domain.auction.domain.Auction;
-import com.leehk.auction.domain.auction.dto.AuctionDto;
+import com.leehk.auction.domain.auction.dto.AuctionRequestDto;
+import com.leehk.auction.domain.auction.dto.AuctionResponseDto;
 import com.leehk.auction.global.response.ApiResponse;
 import com.leehk.auction.global.response.SuccessCode;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,14 +28,14 @@ public class AuctionController {
             description = "조회 성공"
     )
     @GetMapping("/{auctionId}")
-    public ApiResponse<AuctionDto> getAuction(@PathVariable Long auctionId) {
+    public ApiResponse<AuctionResponseDto> getAuction(@PathVariable Long auctionId) {
         return ApiResponse.success(SuccessCode.OK,
                 AuctionConverter.DomainToDto(auctionService.getAuction(auctionId)));
     }
 
     @GetMapping("/ongoing")
-    public ApiResponse<List<AuctionDto>> getOngoingAuctions() {
-        List<AuctionDto> ongoingAuctionDtoList = auctionService.getOngoingAuctions()
+    public ApiResponse<List<AuctionResponseDto>> getOngoingAuctions() {
+        List<AuctionResponseDto> ongoingAuctionDtoList = auctionService.getOngoingAuctions()
                 .stream()
                 .map(AuctionConverter::DomainToDto)
                 .toList();
@@ -43,7 +44,7 @@ public class AuctionController {
     }
 
     @PostMapping
-    public ApiResponse<AuctionDto> createAuction(@RequestBody AuctionDto auctionDto) {
+    public ApiResponse<AuctionResponseDto> createAuction(@RequestBody AuctionRequestDto auctionDto) {
         Auction auction = AuctionConverter.DtoToDomain(auctionDto);
 
         return ApiResponse.success(SuccessCode.CREATED,
@@ -51,7 +52,7 @@ public class AuctionController {
     }
 
     @PutMapping("/{auctionId}")
-    public ApiResponse<AuctionDto> updateAuction(@PathVariable Long auctionId, @RequestBody AuctionDto auctionDto) {
+    public ApiResponse<AuctionResponseDto> updateAuction(@PathVariable Long auctionId, @RequestBody AuctionRequestDto auctionDto) {
         Auction auction = AuctionConverter.DtoToDomain(auctionDto);
 
         return ApiResponse.success(SuccessCode.UPDATED,

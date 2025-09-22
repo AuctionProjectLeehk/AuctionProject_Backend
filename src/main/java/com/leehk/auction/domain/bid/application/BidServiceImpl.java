@@ -3,11 +3,12 @@ package com.leehk.auction.domain.bid.application;
 import com.leehk.auction.domain.auction.application.AuctionService;
 import com.leehk.auction.domain.auction.converter.AuctionConverter;
 import com.leehk.auction.domain.auction.domain.Auction;
-import com.leehk.auction.domain.auction.infrastructure.AuctionEntity;
 import com.leehk.auction.domain.bid.converter.BidConverter;
 import com.leehk.auction.domain.bid.domain.Bid;
 import com.leehk.auction.domain.bid.infrastructure.BidEntity;
 import com.leehk.auction.domain.bid.infrastructure.BidRepository;
+import com.leehk.auction.global.response.CustomException;
+import com.leehk.auction.global.response.ErrorCode;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -38,6 +39,9 @@ public class BidServiceImpl implements BidService {
 
     @Override
     public List<Bid> getBidByAuctionId(Long auctionId) {
+        if (auctionService.getAuction(auctionId) == null)
+            throw new CustomException(ErrorCode.AUCTION_NOT_FOUND);
+
         return bidRepository.findByAuctionEntity_Id(auctionId)
                 .stream()
                 .map(BidConverter::entityToDomain)

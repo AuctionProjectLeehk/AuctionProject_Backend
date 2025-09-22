@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @Builder
 public class AuctionResponseDto {
 
+    private Long id;
     private String title;
     private String description;
     private long startPrice;

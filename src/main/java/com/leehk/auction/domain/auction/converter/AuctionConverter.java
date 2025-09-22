@@ -35,6 +35,7 @@ public class AuctionConverter {
 
     public static Auction DtoToDomain(AuctionRequestDto auctionDto) {
         return Auction.builder()
+                .id(auctionDto.getId())
                 .title(auctionDto.getTitle())
                 .description(auctionDto.getDescription())
                 .startPrice(auctionDto.getStartPrice())
@@ -47,6 +48,7 @@ public class AuctionConverter {
     
     public static AuctionResponseDto DomainToDto(Auction auction) {
         return AuctionResponseDto.builder()
+                .id(auction.getId())
                 .title(auction.getTitle())
                 .description(auction.getDescription())
                 .startPrice(auction.getStartPrice())

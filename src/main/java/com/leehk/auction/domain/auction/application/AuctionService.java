@@ -1,8 +1,6 @@
 package com.leehk.auction.domain.auction.application;
 
 import com.leehk.auction.domain.auction.domain.Auction;
-import com.leehk.auction.domain.auction.dto.AuctionDto;
-import com.leehk.auction.domain.auction.infrastructure.AuctionEntity;
 
 import java.util.List;
 
@@ -12,7 +10,7 @@ public interface AuctionService {
      * 특정 경매를 고유 식별자로 조회합니다.
      *
      * @param auctionId 조회할 경매의 고유 식별자
-     * @return 주어진 식별자와 연관된 {@link AuctionDto}
+     * @return 주어진 식별자와 연관된 {@link Auction}
      * @throws com.leehk.auction.global.response.CustomException 지정된 식별자의 경매를 찾을 수 없는 경우
      */
     Auction getAuction(Long auctionId);

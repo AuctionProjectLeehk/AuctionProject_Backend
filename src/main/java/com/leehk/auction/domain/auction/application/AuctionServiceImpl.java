@@ -2,7 +2,6 @@ package com.leehk.auction.domain.auction.application;
 
 import com.leehk.auction.domain.auction.converter.AuctionConverter;
 import com.leehk.auction.domain.auction.domain.Auction;
-import com.leehk.auction.domain.auction.dto.AuctionDto;
 import com.leehk.auction.domain.auction.enums.AuctionStatus;
 import com.leehk.auction.domain.auction.infrastructure.AuctionEntity;
 import com.leehk.auction.domain.auction.infrastructure.AuctionRepository;

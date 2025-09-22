@@ -1,7 +1,8 @@
 package com.leehk.auction.domain.auction.converter;
 
 import com.leehk.auction.domain.auction.domain.Auction;
-import com.leehk.auction.domain.auction.dto.AuctionDto;
+import com.leehk.auction.domain.auction.dto.AuctionRequestDto;
+import com.leehk.auction.domain.auction.dto.AuctionResponseDto;
 import com.leehk.auction.domain.auction.infrastructure.AuctionEntity;
 
 public class AuctionConverter {
@@ -32,9 +33,8 @@ public class AuctionConverter {
                 .build();
     }
 
-    public static Auction DtoToDomain(AuctionDto auctionDto) {
+    public static Auction DtoToDomain(AuctionRequestDto auctionDto) {
         return Auction.builder()
-                .id(auctionDto.getId())
                 .title(auctionDto.getTitle())
                 .description(auctionDto.getDescription())
                 .startPrice(auctionDto.getStartPrice())
@@ -45,9 +45,8 @@ public class AuctionConverter {
                 .build();
     }
     
-    public static AuctionDto DomainToDto(Auction auction) {
-        return AuctionDto.builder()
-                .id(auction.getId())
+    public static AuctionResponseDto DomainToDto(Auction auction) {
+        return AuctionResponseDto.builder()
                 .title(auction.getTitle())
                 .description(auction.getDescription())
                 .startPrice(auction.getStartPrice())

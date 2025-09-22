@@ -7,6 +7,8 @@ public interface UserRepository {
 
     UserEntity save(UserEntity userEntity);
 
+    Optional<UserEntity> findById(Long id);
+
     Optional<UserEntity> findByEmail(String email);
 
     Optional<UserEntity> findByNickname(String nickname);

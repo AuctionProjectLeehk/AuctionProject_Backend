@@ -11,5 +11,7 @@ public interface BidRepository {
 
     List<BidEntity> findByAuctionEntity_Id(Long auctionId);
 
+    Optional<BidEntity> findTopByAuctionEntity_IdOrderByBidPriceDesc(Long auctionId);
+
     void delete(BidEntity bidEntity);
 }

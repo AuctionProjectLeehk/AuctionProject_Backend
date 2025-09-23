@@ -1,10 +1,12 @@
 package com.leehk.auction.domain.auction.dto;
 
 import com.leehk.auction.domain.auction.enums.AuctionStatus;
+import com.leehk.auction.domain.bid.dto.BidResponseDto;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Builder
@@ -18,4 +20,5 @@ public class AuctionResponseDto {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private AuctionStatus status;
+    private List<BidResponseDto> bids;
 }

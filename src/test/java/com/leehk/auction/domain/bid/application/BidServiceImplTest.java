@@ -10,6 +10,10 @@ import com.leehk.auction.domain.auction.infrastructure.AuctionRepository;
 import com.leehk.auction.domain.bid.domain.Bid;
 import com.leehk.auction.domain.bid.infrastructure.BidEntity;
 import com.leehk.auction.domain.bid.infrastructure.BidRepository;
+import com.leehk.auction.domain.user.application.UserService;
+import com.leehk.auction.domain.user.domain.User;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -18,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,87 +34,96 @@ class BidServiceImplTest extends BaseH2Test {
     private BidRepository bidRepository;
 
     @Autowired
-    private AuctionRepository auctionRepository;
+    private BidService bidService;
 
     @Autowired
     private AuctionService auctionService;
-    @Autowired
-    private BidService bidService;
 
-    @Test
-    void placeBid_success() {
-        // given
-        Auction auction = Auction.builder()
+    @Autowired
+    private UserService userService;
+
+    private Auction testAuction;
+    private User testUser;
+
+    @BeforeEach
+    void setup() {
+        testAuction = Auction.builder()
                 .title("test 경매")
                 .description("test 설명")
                 .startPrice(1000L)
-                .currentPrice(1000L)
+                .currentPrice(10000L)
                 .startTime(LocalDateTime.now())
                 .endTime(LocalDateTime.now().plusDays(1))
                 .status(AuctionStatus.ONGOING)
                 .build();
 
-        AuctionEntity saveAuctionEntity = auctionRepository.save(AuctionConverter.DomainToEntity(auction));
+        testUser = User.builder()
+                .email("<EMAIL>")
+                .name("test")
+                .password("<PASSWORD>")
+                .nickname("test")
+                .build();
+    }
+
+    @Test
+    @DisplayName("입찰 성공 - 현재가보다 높은 금액으로 입찰")
+    void placeBid_success() {
+        // given
+        Auction createdAuction = auctionService.createAuction(testAuction);
+        User savedUser = userService.saveUser(testUser);
 
         // when
-        Bid bid = bidService.placeBid(saveAuctionEntity.getId(), 1L, 11000L);
-        Optional<BidEntity> saveBidList = bidRepository.findById(bid.getId());
+        Bid bid = bidService.placeBid(createdAuction.getId(), savedUser.getId(), 11000L);
+        Auction updatedAuction = auctionService.getAuction(createdAuction.getId());
 
         // then
-        assertThat(saveBidList.isPresent());
-        assertThat(saveBidList.get().getBidPrice()).isEqualTo(11000L);
-        assertThat(saveBidList.get().getAuctionEntity().getId()).isEqualTo(saveAuctionEntity.getId());
+        assertThat(bid.getBidPrice()).isEqualTo(11000L);
+        assertThat(bid.getBidderId()).isEqualTo(savedUser.getId());
+
+        assertThat(updatedAuction.getCurrentPrice()).isEqualTo(11000L);
     }
 
     @Test
     void getBidByAuctionId_Success() {
         // given
-        Auction auction = Auction.builder()
-                .title("test 경매")
-                .description("test 설명")
-                .startPrice(1000L)
-                .currentPrice(1000L)
-                .startTime(LocalDateTime.now())
-                .endTime(LocalDateTime.now().plusDays(1))
-                .status(AuctionStatus.ONGOING)
+        Auction createdAuction = auctionService.createAuction(testAuction);
+
+        User user1 = User.builder()
+                .email("<EMAIL1>")
+                .name("test")
+                .password("<PASSWORD>")
+                .nickname("test1")
                 .build();
+        User savedUser1 = userService.saveUser(user1);
 
-        AuctionEntity saveAuction = auctionRepository.save(AuctionConverter.DomainToEntity(auction));
-        System.out.println("auctionId: " + saveAuction.getId());
-
-        // 3번 사람이 11000웡 입찰
-        Bid bid1 = Bid.builder()
-                .id(2L)
-                .bidderId(5L)
-                .bidPrice(11000L)
-                .auction(AuctionConverter.EntityToDomain(saveAuction))
+        User user2 = User.builder()
+                .email("<EMAIL2>")
+                .name("test")
+                .password("<PASSWORD>")
+                .nickname("test2")
                 .build();
-        bidService.placeBid(saveAuction.getId(), bid1.getBidderId(), bid1.getBidPrice());
+        User savedUser2 = userService.saveUser(user2);
 
-        // 7번 사람이 12000웡 입찰
-        Bid bid2 = Bid.builder()
-                .id(3L)
-                .bidderId(7L)
-                .bidPrice(12000L)
-                .auction(AuctionConverter.EntityToDomain(saveAuction))
+        User user3 = User.builder()
+                .email("<EMAIL3>")
+                .name("test")
+                .password("<PASSWORD>")
+                .nickname("test3")
                 .build();
-        bidService.placeBid(saveAuction.getId(), bid2.getBidderId(), bid2.getBidPrice());
+        User savedUser3 = userService.saveUser(user3);
 
-        // 3번 사람이 13000웡 입찰
-        Bid bid3 = Bid.builder()
-                .id(6L)
-                .bidderId(5L)
-                .bidPrice(13000L)
-                .auction(AuctionConverter.EntityToDomain(saveAuction))
-                .build();
-
-        bidService.placeBid(saveAuction.getId(), bid3.getBidderId(), bid3.getBidPrice());
 
         // when
-        List<Bid> bidList = bidService.getBidByAuctionId(saveAuction.getId());
+        bidService.placeBid(createdAuction.getId(), savedUser1.getId(), 11000L);
+        bidService.placeBid(createdAuction.getId(), savedUser2.getId(), 12000L);
+        bidService.placeBid(createdAuction.getId(), savedUser1.getId(), 13000L);
+        bidService.placeBid(createdAuction.getId(), savedUser3.getId(), 14000L);
+
+        List<Bid> bidList = bidService.getBidByAuctionId(createdAuction.getId());
+        Auction updatedAuction = auctionService.getAuction(createdAuction.getId());
 
         // then
-        assertThat(bidList.size()).isEqualTo(3);  // 3번 입찰
-        assertThat(saveAuction.getCurrentPrice()).isEqualTo(13000L);  // 13000원
+        assertThat(bidList.size()).isEqualTo(4);  // 4번 입찰
+        assertThat(updatedAuction.getCurrentPrice()).isEqualTo(14000L);  // 14000원
     }
 }

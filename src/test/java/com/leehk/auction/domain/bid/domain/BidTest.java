@@ -31,12 +31,12 @@ class BidTest {
                 .id(1L)
                 .bidderId(3L)
                 .bidPrice(10000L)
-                .auction(auction)
+                .auctionId(auction.getId())
                 .build();
 
         // then
         assertThat(bid.getBidderId()).isEqualTo(3L);
-        assertThat(bid.getAuction()).isEqualTo(auction);
+        assertThat(bid.getAuctionId()).isEqualTo(auction.getId());
         assertThat(bid.getBidPrice()).isEqualTo(10000L);
         assertThat(bid.getId()).isEqualTo(1L);
         assertThat(bid.getBidTime()).isNotNull();

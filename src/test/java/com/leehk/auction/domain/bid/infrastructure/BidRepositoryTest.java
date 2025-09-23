@@ -5,6 +5,7 @@ import com.leehk.auction.domain.auction.domain.Auction;
 import com.leehk.auction.domain.auction.enums.AuctionStatus;
 import com.leehk.auction.domain.auction.infrastructure.AuctionEntity;
 import com.leehk.auction.domain.auction.infrastructure.AuctionRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +16,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
-import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 class BidRepositoryTest {
@@ -27,11 +26,11 @@ class BidRepositoryTest {
     @Autowired
     private BidRepository bidRepository;
 
-    @Test
-    @DisplayName("bid db에 한명 저장 테스트")
-    void saveAndFindBidTest() {
-        //given
-        Auction auction = Auction.builder()
+    private Auction testAuction;
+
+    @BeforeEach
+    void setup() {
+        testAuction = Auction.builder()
                 .title("test 경매")
                 .description("test 설명")
                 .startPrice(1000L)
@@ -40,8 +39,13 @@ class BidRepositoryTest {
                 .endTime(LocalDateTime.now().plusDays(1))
                 .status(AuctionStatus.ONGOING)
                 .build();
+    }
 
-        AuctionEntity auctionEntity = AuctionConverter.DomainToEntity(auction);
+    @Test
+    @DisplayName("bid db에 한명 저장 테스트")
+    void saveAndFindBidTest() {
+        //given
+        AuctionEntity auctionEntity = AuctionConverter.domainToEntity(testAuction);
         AuctionEntity savedAuctionEntity = auctionRepository.save(auctionEntity);
 
         BidEntity bidEntity = BidEntity.builder()
@@ -65,17 +69,7 @@ class BidRepositoryTest {
     @DisplayName("bid db 에 여러명 저장 후 확인 테스트")
     void saveAndFindAllBidTest() {
         //given
-        Auction auction = Auction.builder()
-                .title("test 경매")
-                .description("test 설명")
-                .startPrice(1000L)
-                .currentPrice(10000L)
-                .startTime(LocalDateTime.now())
-                .endTime(LocalDateTime.now().plusDays(1))
-                .status(AuctionStatus.ONGOING)
-                .build();
-
-        AuctionEntity auctionEntity = AuctionConverter.DomainToEntity(auction);
+        AuctionEntity auctionEntity = AuctionConverter.domainToEntity(testAuction);
         AuctionEntity savedAuctionEntity = auctionRepository.save(auctionEntity);
 
         BidEntity bidEntity1 = BidEntity.builder()
@@ -108,5 +102,45 @@ class BidRepositoryTest {
 
         // then
         assertThat(bidEntities.size()).isEqualTo(3);
+    }
+    
+    @Test
+    @DisplayName("최고 입찰 조회 테스트")
+    void findTopBidTest() {
+        // given
+        AuctionEntity savedAuctionEntity = auctionRepository.save(AuctionConverter.domainToEntity(testAuction));
+
+        BidEntity bidEntity1 = BidEntity.builder()
+                .bidderId(1L)
+                .bidPrice(1000L)
+                .bidTime(LocalDateTime.now())
+                .auctionEntity(savedAuctionEntity)
+                .build();
+
+        BidEntity bidEntity2 = BidEntity.builder()
+                .bidderId(2L)
+                .bidPrice(1100L)
+                .bidTime(LocalDateTime.now())
+                .auctionEntity(savedAuctionEntity)
+                .build();
+
+        BidEntity bidEntity3 = BidEntity.builder()
+                .bidderId(1L)
+                .bidPrice(1200L)
+                .bidTime(LocalDateTime.now())
+                .auctionEntity(savedAuctionEntity)
+                .build();
+
+        BidEntity bid1 = bidRepository.save(bidEntity1);
+        BidEntity bid2 = bidRepository.save(bidEntity2);
+        BidEntity bid3 = bidRepository.save(bidEntity3);
+
+        // when
+        Optional<BidEntity> highestBid = bidRepository.findTopByAuctionEntity_IdOrderByBidPriceDesc(savedAuctionEntity.getId());
+
+        // then
+        assertThat(highestBid).isPresent();
+        assertThat(highestBid.get().getBidPrice()).isEqualTo(1200L);
+        assertThat(highestBid.get().getBidderId()).isEqualTo(1L);
     }
 }

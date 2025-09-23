@@ -2,24 +2,27 @@ package com.leehk.auction.domain.auction.domain;
 
 import com.leehk.auction.domain.auction.enums.AuctionStatus;
 import com.leehk.auction.domain.bid.domain.Bid;
+import com.leehk.auction.domain.user.domain.User;
 import com.leehk.auction.global.response.CustomException;
 import com.leehk.auction.global.response.ErrorCode;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.util.Random;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class AuctionTest {
 
-    @Test
-    @DisplayName("정상 입찰 - 현재가보다 높은 가격으로 입찰 성공")
-    void placeBid_Success() {
-        // given
-        Auction auction = Auction.builder()
-                .id(1L)
+    private Auction testAuction;
+
+    @BeforeEach
+    void setup() {
+        testAuction = Auction.builder()
+                .id(new Random().nextLong())
                 .title("test 경매")
                 .description("test 설명")
                 .startPrice(1000L)
@@ -28,6 +31,13 @@ class AuctionTest {
                 .endTime(LocalDateTime.now().plusDays(1))
                 .status(AuctionStatus.ONGOING)
                 .build();
+    }
+
+    @Test
+    @DisplayName("정상 입찰 - 현재가보다 높은 가격으로 입찰 성공")
+    void placeBid_Success() {
+        // given
+        Auction auction = testAuction;
 
         // when
         auction.placeBid(1L, 11000L);
@@ -40,22 +50,7 @@ class AuctionTest {
     @DisplayName("정상 입찰 - 입찰자 확인")
     void placeBid_Success_Bidder() {
         // given
-        Auction auction = Auction.builder()
-                .id(1L)
-                .title("test 경매")
-                .description("test 설명")
-                .startPrice(1000L)
-                .currentPrice(10000L)
-                .startTime(LocalDateTime.now())
-                .endTime(LocalDateTime.now().plusDays(1))
-                .status(AuctionStatus.ONGOING)
-                .build();
-
-        Bid bid1 = Bid.builder()
-                .id(1L)
-                .bidderId(11000L)
-                .auction(auction)
-                .build();
+        Auction auction = testAuction;
 
         // when
         auction.placeBid(1L, 11000L);
@@ -68,42 +63,25 @@ class AuctionTest {
     @DisplayName("정상 입찰 - 입찰자가 여러명인 경우, 총 인원과 최대 입찰자 확인")
     void getBidsAndGetHighestBidderIdTest() {
         // given
-        Auction auction = Auction.builder()
-                .id(1L)
-                .title("test 경매")
-                .description("test 설명")
-                .startPrice(1000L)
-                .currentPrice(10000L)
-                .startTime(LocalDateTime.now())
-                .endTime(LocalDateTime.now().plusDays(1))
-                .status(AuctionStatus.ONGOING)
-                .build();
+        Auction auction = testAuction;
 
         // when
         auction.placeBid(1L, 11000L);
-        auction.placeBid(3L, 12000L);
-        auction.placeBid(6L, 13000L);
-        auction.placeBid(5L, 14000L);
+        auction.placeBid(2L, 12000L);
+        auction.placeBid(7L, 13000L);
+        auction.placeBid(1L, 14000L);
 
         // then
-        assertThat(auction.getBids().size()).isEqualTo(4);
-        assertThat(auction.getHighestBidderId()).isEqualTo(5L);
+        assertThat(auction.getBids().size()).isEqualTo(4);  // 4개 입찰
+        assertThat(auction.getBids().stream().map(Bid::getBidderId).distinct().count()).isEqualTo(3);  // 3명 입찰
+        assertThat(auction.getHighestBidderId()).isEqualTo(1L);
     }
 
     @Test
     @DisplayName("실패 - 현재가보다 낮은 가격으로 입찰 시 예외 발생")
     void placeBid_TooLow() {
         // given
-        Auction auction = Auction.builder()
-                .id(1L)
-                .title("test 경매")
-                .description("test 설명")
-                .startPrice(1000L)
-                .currentPrice(10000L)
-                .startTime(LocalDateTime.now())
-                .endTime(LocalDateTime.now().plusDays(1))
-                .status(AuctionStatus.ONGOING)
-                .build();
+        Auction auction = testAuction;
 
         // when and then
         assertThatThrownBy(() -> auction.placeBid(1L, 9000L))
@@ -115,18 +93,12 @@ class AuctionTest {
     @DisplayName("실패 - 종료된 경매에 입찰 시 예외 발생")
     void placeBid_EndedAuction() {
         // given
-        Auction auction = Auction.builder()
-                .id(1L)
-                .title("test 경매")
-                .description("test 설명")
-                .startPrice(1000L)
-                .currentPrice(10000L)
-                .startTime(LocalDateTime.now())
-                .endTime(LocalDateTime.now().plusDays(1))
-                .status(AuctionStatus.ENDED)
-                .build();
+        Auction auction = testAuction;
 
-        // when and then
+        // when
+        auction.endAuction();
+
+        // then
         assertThatThrownBy(() -> auction.placeBid(1L, 11000L))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.AUCTION_ALREADY_ENDED.getMessage());
@@ -136,16 +108,7 @@ class AuctionTest {
     @DisplayName("경매 종료 성공")
     void endAuction_Success() {
         // given
-        Auction auction = Auction.builder()
-                .id(1L)
-                .title("test 경매")
-                .description("test 설명")
-                .startPrice(1000L)
-                .currentPrice(10000L)
-                .startTime(LocalDateTime.now())
-                .endTime(LocalDateTime.now().plusDays(1))
-                .status(AuctionStatus.ONGOING)
-                .build();
+        Auction auction = testAuction;
 
         // when
         auction.endAuction();

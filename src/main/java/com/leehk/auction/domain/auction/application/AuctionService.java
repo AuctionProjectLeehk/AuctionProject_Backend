@@ -58,7 +58,7 @@ public interface AuctionService {
      * @throws com.leehk.auction.global.response.CustomException 경매를 찾을 수 없거나, 경매가 이미 종료되었거나,
      *                                                           입찰가가 현재 가격보다 낮은 경우
      */
-    Auction placeBid(Long auctionId, long bidPrice);
+    Auction placeBid(Long auctionId, Long bidderId, long bidPrice);
 
     /**
      * 지정된 경매를 종료 처리합니다.

@@ -25,26 +25,43 @@ public class BidServiceImpl implements BidService {
     @Override
     @Transactional
     public Bid placeBid(Long auctionId, Long bidderId, long bidPrice) {
-        Auction auction = auctionService.getAuction(auctionId);
+        // BidService는 AuctionService를 통해 입찰 처리
+        Auction auction = auctionService.placeBid(auctionId, bidderId, bidPrice);
 
-        Auction tmpAuction = auctionService.placeBid(auctionId, bidPrice);
-
-        return BidConverter.entityToDomain(bidRepository.save(BidEntity.builder()
-                .auctionEntity(AuctionConverter.DomainToEntity(auction))
-                .bidderId(bidderId)
-                .bidPrice(bidPrice)
-                .build()
-        ));
+        return auction.getHighestBid();
     }
 
     @Override
     public List<Bid> getBidByAuctionId(Long auctionId) {
-        if (auctionService.getAuction(auctionId) == null)
-            throw new CustomException(ErrorCode.AUCTION_NOT_FOUND);
-
         return bidRepository.findByAuctionEntity_Id(auctionId)
                 .stream()
                 .map(BidConverter::entityToDomain)
                 .toList();
+    }
+
+    @Override
+    public Bid getBidByBidId(Long bidId) {
+        return bidRepository.findById(bidId)
+                .map(BidConverter::entityToDomain)
+                .orElseThrow(() -> new CustomException(ErrorCode.BID_NOT_FOUND));
+    }
+
+    @Override
+    public Bid getHighestBid(Long auctionId) {
+        return bidRepository.findTopByAuctionEntity_IdOrderByBidPriceDesc(auctionId)
+                .map(BidConverter::entityToDomain)
+                .orElseThrow(() -> new CustomException(ErrorCode.BID_NOT_FOUND));
+    }
+
+    @Override
+    public void cancelBid(Long bidId, Long bidderId) {
+        BidEntity bidEntity = bidRepository.findById(bidId)
+                .orElseThrow(() -> new CustomException(ErrorCode.BID_NOT_FOUND));
+
+        if (!bidEntity.getBidderId().equals(bidderId)) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED_BID_ACTION);
+        }
+
+        bidRepository.delete(bidEntity);
     }
 }

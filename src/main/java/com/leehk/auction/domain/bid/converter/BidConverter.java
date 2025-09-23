@@ -1,8 +1,8 @@
 package com.leehk.auction.domain.bid.converter;
 
-
 import com.leehk.auction.domain.auction.converter.AuctionConverter;
 import com.leehk.auction.domain.auction.domain.Auction;
+import com.leehk.auction.domain.auction.infrastructure.AuctionEntity;
 import com.leehk.auction.domain.bid.domain.Bid;
 import com.leehk.auction.domain.bid.dto.BidRequestDto;
 import com.leehk.auction.domain.bid.dto.BidResponseDto;
@@ -16,25 +16,25 @@ public class BidConverter {
                 .bidderId(bidEntity.getBidderId())
                 .bidPrice(bidEntity.getBidPrice())
                 .bidTime(bidEntity.getBidTime())
-                .auction(AuctionConverter.EntityToDomain(bidEntity.getAuctionEntity()))
+                .auctionId(bidEntity.getAuctionEntity().getId())
                 .build();
     }
 
-    public static BidEntity domainToEntity(Bid bid) {
+    public static BidEntity domainToEntity(Bid bid, Auction auction) {
         return BidEntity.builder()
                 .id(bid.getId())
                 .bidderId(bid.getBidderId())
                 .bidPrice(bid.getBidPrice())
                 .bidTime(bid.getBidTime())
-                .auctionEntity(AuctionConverter.DomainToEntity(bid.getAuction()))
+                .auctionEntity(AuctionEntity.builder().id(auction.getId()).build())
                 .build();
     }
 
-    public static Bid dtoToDomain(BidRequestDto bidDto, Auction auction) {
+    public static Bid dtoToDomain(BidRequestDto bidDto) {
         return Bid.builder()
                 .bidderId(bidDto.getBidderId())
                 .bidPrice(bidDto.getBidPrice())
-                .auction(auction)
+                .auctionId(bidDto.getAuctionId())
                 .build();
     }
 
@@ -43,7 +43,7 @@ public class BidConverter {
                 .id(bid.getId())
                 .bidderId(bid.getBidderId())
                 .bidPrice(bid.getBidPrice())
-                .auctionId(bid.getAuction().getId())
+                .auctionId(bid.getAuctionId())
                 .build();
     }
 }

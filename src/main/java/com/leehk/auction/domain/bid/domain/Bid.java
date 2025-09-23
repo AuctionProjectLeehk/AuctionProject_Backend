@@ -16,5 +16,5 @@ public class Bid {
 
     @Builder.Default
     private LocalDateTime bidTime = LocalDateTime.now();
-    private Auction auction;
+    private Long auctionId;
 }

@@ -26,7 +26,8 @@ public class Auction {
     private AuctionStatus status;
 
     // 입찰자 관리
-    private final List<Bid> bids = new ArrayList<>();
+    @Builder.Default
+    private List<Bid> bids = new ArrayList<>();
 
     // 입찰 처리
     public Bid placeBid(Long bidderId, long bidPrice) {
@@ -36,10 +37,10 @@ public class Auction {
         Bid bid = Bid.builder()
                 .bidderId(bidderId)
                 .bidPrice(bidPrice)
+                .auctionId(this.id)
                 .build();
 
         bids.add(bid);
-        currentPrice = bidPrice;
         return bid;
     }
 
@@ -89,5 +90,17 @@ public class Auction {
         this.startPrice = startPrice;
         this.startTime = startTime;
         this.endTime = endTime;
+    }
+
+    // 가격만 업데이트
+    public void updateAuctionPrice(long newPrice) {
+        this.currentPrice = newPrice;
+    }
+
+    // 최대 입찰 반환
+    public Bid getHighestBid() {
+        return bids.stream()
+                .max(Comparator.comparingLong(Bid::getBidPrice))
+                .orElseThrow(() -> new CustomException(ErrorCode.BID_NOT_FOUND));
     }
 }

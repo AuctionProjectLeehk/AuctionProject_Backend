@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Builder
@@ -38,6 +39,26 @@ public class Auction {
 
         bids.add(bid);
         return bid;
+    }
+
+    // 입찰 삭제
+    public void cancelBid(UUID bidId, Long bidderId) {
+        Bid bid = bids.stream()
+                .filter(b -> b.getId().equals(bidId))
+                .findFirst()
+                .orElseThrow(() -> new CustomException(ErrorCode.BID_NOT_FOUND));
+
+        // bid 유효성 확인
+        if (!bid.getBidderId().equals(bidderId)) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED_BID_ACTION);
+        }
+        
+        bids.remove(bid);
+
+        currentPrice = bids.stream()
+                .mapToLong(Bid::getBidPrice)
+                .max()
+                .orElse(startPrice);
     }
 
     // 입찰 유효성 확인

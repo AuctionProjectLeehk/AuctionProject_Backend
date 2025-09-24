@@ -6,6 +6,7 @@ import com.leehk.auction.domain.auction.enums.AuctionStatus;
 import com.leehk.auction.domain.user.application.UserService;
 import com.leehk.auction.domain.user.domain.User;
 import com.leehk.auction.global.response.CustomException;
+import com.leehk.auction.global.response.ErrorCode;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -119,7 +120,7 @@ class AuctionServiceImplTest extends BaseH2Test {
         // when and then
         assertThatThrownBy(() -> auctionService.getAuction(InvalidId))
                 .isInstanceOf(CustomException.class)
-                .hasMessageContaining("경매를 찾을 수 없습니다.");
+                .hasMessage(ErrorCode.AUCTION_NOT_FOUND.getMessage());
     }
 
     @Test
@@ -134,7 +135,7 @@ class AuctionServiceImplTest extends BaseH2Test {
         // when and then
         assertThatThrownBy(() -> auctionService.placeBid(createdAuction.getId(), savedUser.getId(),11000L))
                 .isInstanceOf(CustomException.class)
-                .hasMessageContaining("이미 종료된 경매입니다.");
+                .hasMessage(ErrorCode.AUCTION_ALREADY_ENDED.getMessage());
     }
 
     @Test
@@ -147,7 +148,7 @@ class AuctionServiceImplTest extends BaseH2Test {
         // when and then
         assertThatThrownBy(() -> auctionService.placeBid(createdAuction.getId(), createduser.getId(),9000L))
                 .isInstanceOf(CustomException.class)
-                .hasMessage("입찰 금액이 현재 최고가보다 낮습니다.");
+                .hasMessage(ErrorCode.BID_TOO_LOW.getMessage());
     }
 
     @Test
@@ -162,6 +163,6 @@ class AuctionServiceImplTest extends BaseH2Test {
         // then
         assertThatThrownBy(() -> auctionService.getAuction(createdAuction.getId()))
                 .isInstanceOf(CustomException.class)
-                .hasMessage("경매를 찾을 수 없습니다.");
+                .hasMessage(ErrorCode.AUCTION_NOT_FOUND.getMessage());
     }
 }

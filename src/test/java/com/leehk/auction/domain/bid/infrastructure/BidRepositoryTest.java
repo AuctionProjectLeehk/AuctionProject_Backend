@@ -5,6 +5,8 @@ import com.leehk.auction.domain.auction.domain.Auction;
 import com.leehk.auction.domain.auction.enums.AuctionStatus;
 import com.leehk.auction.domain.auction.infrastructure.AuctionEntity;
 import com.leehk.auction.domain.auction.infrastructure.AuctionRepository;
+import com.leehk.auction.domain.bid.converter.BidConverter;
+import com.leehk.auction.domain.bid.domain.Bid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -48,12 +50,8 @@ class BidRepositoryTest {
         AuctionEntity auctionEntity = AuctionConverter.domainToEntity(testAuction);
         AuctionEntity savedAuctionEntity = auctionRepository.save(auctionEntity);
 
-        BidEntity bidEntity = BidEntity.builder()
-                .bidderId(1L)
-                .bidPrice(1000L)
-                .bidTime(LocalDateTime.now())
-                .auctionEntity(savedAuctionEntity)
-                .build();
+        Auction savedAuction = AuctionConverter.entityToDomain(savedAuctionEntity);
+        BidEntity bidEntity = BidConverter.domainToEntity(Bid.create(1L, savedAuctionEntity.getId(), 1000L), savedAuction);
 
         // when
         BidEntity saved = bidRepository.save(bidEntity);
@@ -72,26 +70,10 @@ class BidRepositoryTest {
         AuctionEntity auctionEntity = AuctionConverter.domainToEntity(testAuction);
         AuctionEntity savedAuctionEntity = auctionRepository.save(auctionEntity);
 
-        BidEntity bidEntity1 = BidEntity.builder()
-                .bidderId(1L)
-                .bidPrice(1000L)
-                .bidTime(LocalDateTime.now())
-                .auctionEntity(savedAuctionEntity)
-                .build();
-
-        BidEntity bidEntity2 = BidEntity.builder()
-                .bidderId(2L)
-                .bidPrice(1100L)
-                .bidTime(LocalDateTime.now())
-                .auctionEntity(savedAuctionEntity)
-                .build();
-
-        BidEntity bidEntity3 = BidEntity.builder()
-                .bidderId(1L)
-                .bidPrice(1200L)
-                .bidTime(LocalDateTime.now())
-                .auctionEntity(savedAuctionEntity)
-                .build();
+        Auction savedAuction = AuctionConverter.entityToDomain(savedAuctionEntity);
+        BidEntity bidEntity1 = BidConverter.domainToEntity(Bid.create(1L, savedAuctionEntity.getId(), 1000L), savedAuction);
+        BidEntity bidEntity2 = BidConverter.domainToEntity(Bid.create(2L, savedAuctionEntity.getId(), 1100L), savedAuction);
+        BidEntity bidEntity3 = BidConverter.domainToEntity(Bid.create(3L, savedAuctionEntity.getId(), 1200L), savedAuction);
 
         // when
         BidEntity saved1 = bidRepository.save(bidEntity1);
@@ -110,26 +92,10 @@ class BidRepositoryTest {
         // given
         AuctionEntity savedAuctionEntity = auctionRepository.save(AuctionConverter.domainToEntity(testAuction));
 
-        BidEntity bidEntity1 = BidEntity.builder()
-                .bidderId(1L)
-                .bidPrice(1000L)
-                .bidTime(LocalDateTime.now())
-                .auctionEntity(savedAuctionEntity)
-                .build();
-
-        BidEntity bidEntity2 = BidEntity.builder()
-                .bidderId(2L)
-                .bidPrice(1100L)
-                .bidTime(LocalDateTime.now())
-                .auctionEntity(savedAuctionEntity)
-                .build();
-
-        BidEntity bidEntity3 = BidEntity.builder()
-                .bidderId(1L)
-                .bidPrice(1200L)
-                .bidTime(LocalDateTime.now())
-                .auctionEntity(savedAuctionEntity)
-                .build();
+        Auction savedAuction = AuctionConverter.entityToDomain(savedAuctionEntity);
+        BidEntity bidEntity1 = BidConverter.domainToEntity(Bid.create(1L, savedAuctionEntity.getId(), 1000L), savedAuction);
+        BidEntity bidEntity2 = BidConverter.domainToEntity(Bid.create(2L, savedAuctionEntity.getId(), 1100L), savedAuction);
+        BidEntity bidEntity3 = BidConverter.domainToEntity(Bid.create(1L, savedAuctionEntity.getId(), 1200L), savedAuction);
 
         BidEntity bid1 = bidRepository.save(bidEntity1);
         BidEntity bid2 = bidRepository.save(bidEntity2);

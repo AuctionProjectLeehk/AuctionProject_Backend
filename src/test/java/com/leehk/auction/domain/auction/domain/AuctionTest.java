@@ -10,7 +10,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -75,6 +77,65 @@ class AuctionTest {
         assertThat(auction.getBids().size()).isEqualTo(4);  // 4개 입찰
         assertThat(auction.getBids().stream().map(Bid::getBidderId).distinct().count()).isEqualTo(3);  // 3명 입찰
         assertThat(auction.getHighestBidderId()).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("정상 입찰 취소")
+    void cancelBid_Success() {
+        // given
+        Auction auction = testAuction;
+
+        auction.placeBid(1L, 11000L);
+        auction.placeBid(2L, 12000L);
+        auction.placeBid(7L, 13000L);
+        auction.placeBid(1L, 14000L);
+
+        List<Bid> bids = auction.getBids();
+        Bid highestBid = bids.get(bids.size() - 1);
+
+        // when
+        auction.cancelBid(highestBid.getId(), 1L);
+
+        // then
+        assertThat(auction.getBids().size()).isEqualTo(3);
+        assertThat(auction.getCurrentPrice()).isEqualTo(13000L);
+    }
+    
+    @Test
+    @DisplayName("실패 - 없는 입찰 Id 로 접근")
+    void cancelBid_NotFoundBid() {
+        // given
+        Auction auction = testAuction;
+
+        auction.placeBid(1L, 11000L);
+        auction.placeBid(2L, 12000L);
+        auction.placeBid(7L, 13000L);
+        auction.placeBid(1L, 14000L);
+
+        // when and then
+        assertThatThrownBy(() -> auction.cancelBid(UUID.randomUUID(), 1L))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.BID_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("실패 - 입찰 Id와 입찰자 Id가 일치하지 않음")
+    void cancelBid_UnAuthorizedBid() {
+        // given
+        Auction auction = testAuction;
+
+        auction.placeBid(1L, 11000L);
+        auction.placeBid(2L, 12000L);
+        auction.placeBid(7L, 13000L);
+        auction.placeBid(1L, 14000L);
+
+        List<Bid> bids = auction.getBids();
+        Bid highestBid = bids.get(bids.size() - 1);
+
+        // when and then
+        assertThatThrownBy(() -> auction.cancelBid(highestBid.getId(), 2L))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.UNAUTHORIZED_BID_ACTION.getMessage());
     }
 
     @Test

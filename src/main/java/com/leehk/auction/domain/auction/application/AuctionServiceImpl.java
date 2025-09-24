@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -75,6 +76,24 @@ public class AuctionServiceImpl implements AuctionService {
 
         auction.placeBid(bidderId, bidPrice);
 
+        auctionEntity.updateFromDomain(auction);
+
+        return auction;
+    }
+
+    @Override
+    @Transactional
+    public Auction cancelBid(Long auctionId, UUID bidId, Long bidderId) {
+        AuctionEntity auctionEntity = auctionRepository.findById(auctionId)
+                .orElseThrow(() -> new CustomException(ErrorCode.AUCTION_NOT_FOUND));
+
+        // domain
+        Auction auction = AuctionConverter.entityToDomain(auctionEntity);
+
+        // domain에서 cancel
+        auction.cancelBid(bidId, bidderId);
+
+        // entity 수정
         auctionEntity.updateFromDomain(auction);
 
         return auction;

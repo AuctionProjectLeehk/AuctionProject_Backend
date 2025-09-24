@@ -21,6 +21,17 @@ public interface BidService {
     Bid placeBid(Long auctionId, Long bidderId, long bidPrice);
 
     /**
+     * 주어진 입찰 ID와 입찰자 ID를 기반으로 입찰을 취소합니다.
+     * 입찰 ID가 존재하지 않거나 입찰자 ID가 입찰 소유자와 일치하지 않는 경우 예외가 발생합니다.
+     * 취소가 성공적으로 이루어지면 시스템에서 해당 입찰이 제거됩니다.
+     *
+     * @param bidId    취소할 입찰의 고유 식별자
+     * @param bidderId 입찰을 취소하려는 입찰자의 고유 식별자
+     * @throws CustomException 입찰이 존재하지 않거나 입찰자가 취소 권한이 없는 경우
+     */
+    void cancelBid(UUID bidId, Long bidderId);
+
+    /**
      * 지정된 경매 ID와 관련된 입찰 목록을 조회합니다.
      * 이 메서드는 주어진 경매와 관련된 모든 입찰을 가져와서
      * 해당 경매의 입찰 활동을 확인할 수 있게 합니다.
@@ -49,15 +60,4 @@ public interface BidService {
      * @throws CustomException 해당 경매의 입찰 정보를 찾을 수 없는 경우
      */
     Bid getHighestBid(Long auctionId);
-
-    /**
-     * 주어진 입찰 ID와 입찰자 ID를 기반으로 입찰을 취소합니다.
-     * 입찰 ID가 존재하지 않거나 입찰자 ID가 입찰 소유자와 일치하지 않는 경우 예외가 발생합니다.
-     * 취소가 성공적으로 이루어지면 시스템에서 해당 입찰이 제거됩니다.
-     *
-     * @param bidId    취소할 입찰의 고유 식별자
-     * @param bidderId 입찰을 취소하려는 입찰자의 고유 식별자
-     * @throws CustomException 입찰이 존재하지 않거나 입찰자가 취소 권한이 없는 경우
-     */
-    void cancelBid(UUID bidId, Long bidderId);
 }

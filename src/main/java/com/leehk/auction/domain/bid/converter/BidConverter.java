@@ -1,6 +1,5 @@
 package com.leehk.auction.domain.bid.converter;
 
-import com.leehk.auction.domain.auction.converter.AuctionConverter;
 import com.leehk.auction.domain.auction.domain.Auction;
 import com.leehk.auction.domain.auction.infrastructure.AuctionEntity;
 import com.leehk.auction.domain.bid.domain.Bid;
@@ -11,13 +10,13 @@ import com.leehk.auction.domain.bid.infrastructure.BidEntity;
 public class BidConverter {
 
     public static Bid entityToDomain(BidEntity bidEntity) {
-        return Bid.builder()
-                .id(bidEntity.getId())
-                .bidderId(bidEntity.getBidderId())
-                .bidPrice(bidEntity.getBidPrice())
-                .bidTime(bidEntity.getBidTime())
-                .auctionId(bidEntity.getAuctionEntity().getId())
-                .build();
+        return Bid.restore(
+                bidEntity.getId(),
+                bidEntity.getBidderId(),
+                bidEntity.getAuctionEntity().getId(),
+                bidEntity.getBidPrice(),
+                bidEntity.getBidTime()
+        );
     }
 
     public static BidEntity domainToEntity(Bid bid, Auction auction) {
@@ -31,12 +30,9 @@ public class BidConverter {
     }
 
     public static Bid dtoToDomain(BidRequestDto bidDto) {
-        return Bid.builder()
-                .bidderId(bidDto.getBidderId())
-                .bidPrice(bidDto.getBidPrice())
-                .auctionId(bidDto.getAuctionId())
-                .build();
+        return Bid.create(bidDto.getBidderId(), bidDto.getAuctionId(), bidDto.getBidPrice());
     }
+
 
     public static BidResponseDto domainToDto(Bid bid) {
         return BidResponseDto.builder()

@@ -4,6 +4,7 @@ import com.leehk.auction.domain.bid.domain.Bid;
 import com.leehk.auction.global.response.CustomException;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface BidService {
 
@@ -37,7 +38,7 @@ public interface BidService {
      * @return 주어진 ID에 해당하는 {@code Bid} 객체
      * @throws CustomException 해당 ID의 입찰을 찾을 수 없는 경우
      */
-    Bid getBidByBidId(Long bidId);
+    Bid getBidByBidId(UUID bidId);
 
     /**
      * 특정 경매의 최고 입찰가를 조회합니다.
@@ -58,5 +59,5 @@ public interface BidService {
      * @param bidderId 입찰을 취소하려는 입찰자의 고유 식별자
      * @throws CustomException 입찰이 존재하지 않거나 입찰자가 취소 권한이 없는 경우
      */
-    void cancelBid(Long bidId, Long bidderId);
+    void cancelBid(UUID bidId, Long bidderId);
 }

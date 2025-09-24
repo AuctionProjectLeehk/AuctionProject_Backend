@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -40,7 +41,7 @@ public class BidServiceImpl implements BidService {
     }
 
     @Override
-    public Bid getBidByBidId(Long bidId) {
+    public Bid getBidByBidId(UUID bidId) {
         return bidRepository.findById(bidId)
                 .map(BidConverter::entityToDomain)
                 .orElseThrow(() -> new CustomException(ErrorCode.BID_NOT_FOUND));
@@ -54,7 +55,7 @@ public class BidServiceImpl implements BidService {
     }
 
     @Override
-    public void cancelBid(Long bidId, Long bidderId) {
+    public void cancelBid(UUID bidId, Long bidderId) {
         BidEntity bidEntity = bidRepository.findById(bidId)
                 .orElseThrow(() -> new CustomException(ErrorCode.BID_NOT_FOUND));
 

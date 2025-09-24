@@ -34,6 +34,7 @@ public class AuctionEntity {
     @Column(nullable = false)
     private long startPrice;
 
+    @Setter
     @Column(nullable = false)
     private long currentPrice;
 

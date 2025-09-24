@@ -3,6 +3,7 @@ package com.leehk.auction.domain.bid.application;
 import com.leehk.auction.domain.auction.application.AuctionService;
 import com.leehk.auction.domain.auction.converter.AuctionConverter;
 import com.leehk.auction.domain.auction.domain.Auction;
+import com.leehk.auction.domain.auction.infrastructure.AuctionEntity;
 import com.leehk.auction.domain.bid.converter.BidConverter;
 import com.leehk.auction.domain.bid.domain.Bid;
 import com.leehk.auction.domain.bid.infrastructure.BidEntity;
@@ -26,10 +27,22 @@ public class BidServiceImpl implements BidService {
     @Override
     @Transactional
     public Bid placeBid(Long auctionId, Long bidderId, long bidPrice) {
-        // BidService는 AuctionService를 통해 입찰 처리
         Auction auction = auctionService.placeBid(auctionId, bidderId, bidPrice);
 
         return auction.getHighestBid();
+    }
+
+    @Transactional
+    @Override
+    public void cancelBid(UUID bidId, Long bidderId) {
+        BidEntity bidEntity = bidRepository.findById(bidId)
+                .orElseThrow(() -> new CustomException(ErrorCode.BID_NOT_FOUND));
+
+        if (!bidEntity.getBidderId().equals(bidderId)) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED_BID_ACTION);
+        }
+
+        auctionService.cancelBid(bidEntity.getAuctionEntity().getId(), bidId, bidderId);
     }
 
     @Override
@@ -52,17 +65,5 @@ public class BidServiceImpl implements BidService {
         return bidRepository.findTopByAuctionEntity_IdOrderByBidPriceDesc(auctionId)
                 .map(BidConverter::entityToDomain)
                 .orElseThrow(() -> new CustomException(ErrorCode.BID_NOT_FOUND));
-    }
-
-    @Override
-    public void cancelBid(UUID bidId, Long bidderId) {
-        BidEntity bidEntity = bidRepository.findById(bidId)
-                .orElseThrow(() -> new CustomException(ErrorCode.BID_NOT_FOUND));
-
-        if (!bidEntity.getBidderId().equals(bidderId)) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED_BID_ACTION);
-        }
-
-        bidRepository.delete(bidEntity);
     }
 }

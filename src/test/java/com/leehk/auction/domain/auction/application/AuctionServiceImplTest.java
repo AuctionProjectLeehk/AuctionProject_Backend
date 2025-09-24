@@ -3,6 +3,8 @@ package com.leehk.auction.domain.auction.application;
 import com.leehk.auction.domain.auction.BaseH2Test;
 import com.leehk.auction.domain.auction.domain.Auction;
 import com.leehk.auction.domain.auction.enums.AuctionStatus;
+import com.leehk.auction.domain.auction.infrastructure.AuctionEntity;
+import com.leehk.auction.domain.bid.domain.Bid;
 import com.leehk.auction.domain.user.application.UserService;
 import com.leehk.auction.domain.user.domain.User;
 import com.leehk.auction.global.response.CustomException;
@@ -15,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -149,6 +152,29 @@ class AuctionServiceImplTest extends BaseH2Test {
         assertThatThrownBy(() -> auctionService.placeBid(createdAuction.getId(), createduser.getId(),9000L))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.BID_TOO_LOW.getMessage());
+    }
+
+    @Test
+    @DisplayName("입찰 취소 테스트")
+    void cancelBid_Success() {
+        // given
+        Auction createdAuction = auctionService.createAuction(testAuction);
+        User createdUser = userService.saveUser(testUser);
+
+        auctionService.placeBid(createdAuction.getId(), createdUser.getId(), 11000L);
+        auctionService.placeBid(createdAuction.getId(), createdUser.getId(), 12000L);
+        auctionService.placeBid(createdAuction.getId(), createdUser.getId(), 13000L);
+
+        Auction auction = auctionService.getAuction(createdAuction.getId());
+        Bid highesetBid = auction.getHighestBid();
+
+        // then
+        auctionService.cancelBid(createdAuction.getId(), highesetBid.getId(), createdUser.getId());
+        Auction updatedAuction = auctionService.getAuction(createdAuction.getId());
+
+        // then
+        assertThat(updatedAuction.getCurrentPrice()).isEqualTo(12000L);
+        assertThat(updatedAuction.getBids().size()).isEqualTo(2);
     }
 
     @Test

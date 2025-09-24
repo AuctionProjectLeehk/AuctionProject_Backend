@@ -12,6 +12,7 @@ import com.leehk.auction.domain.bid.infrastructure.BidEntity;
 import com.leehk.auction.domain.bid.infrastructure.BidRepository;
 import com.leehk.auction.domain.user.application.UserService;
 import com.leehk.auction.domain.user.domain.User;
+import com.leehk.auction.global.response.CustomException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,8 +24,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Transactional
@@ -125,5 +128,65 @@ class BidServiceImplTest extends BaseH2Test {
         // then
         assertThat(bidList.size()).isEqualTo(4);  // 4번 입찰
         assertThat(updatedAuction.getCurrentPrice()).isEqualTo(14000L);  // 14000원
+    }
+
+    @Test
+    @DisplayName("동일 사용자가 여러번 입찰 - 가장 높은 입찰만 확인")
+    void placeMultipleBids_sameUser() {
+        // given
+        Auction createdAuction = auctionService.createAuction(testAuction);
+        User savedUser = userService.saveUser(testUser);
+
+        // when - 여러번 입찰
+        bidService.placeBid(createdAuction.getId(), savedUser.getId(), 11000L);
+        bidService.placeBid(createdAuction.getId(), savedUser.getId(), 12000L);
+        bidService.placeBid(createdAuction.getId(), savedUser.getId(), 13000L);
+
+        List<Bid> bidList = bidService.getBidByAuctionId(createdAuction.getId());
+        Auction updatedAuction = auctionService.getAuction(createdAuction.getId());
+
+        // then
+        assertThat(bidList.size()).isEqualTo(3);
+        assertThat(updatedAuction.getCurrentPrice()).isEqualTo(13000L);
+        assertThat(updatedAuction.getHighestBidderId()).isEqualTo(savedUser.getId());
+    }
+
+    @Test
+    @DisplayName("입찰 취소 테스트")
+    void cancelBid_Success() {
+        // given
+        Auction createdAuction = auctionService.createAuction(testAuction);
+        User savedUser = userService.saveUser(testUser);
+
+        bidService.placeBid(createdAuction.getId(), savedUser.getId(), 11000L);
+        bidService.placeBid(createdAuction.getId(), savedUser.getId(), 12000L);
+        Bid highestBid = bidService.getHighestBid(createdAuction.getId());
+
+        // when
+        bidService.cancelBid(highestBid.getId(), savedUser.getId());
+
+        List<Bid> bidList = bidService.getBidByAuctionId(createdAuction.getId());
+        Auction updatedAuction = auctionService.getAuction(createdAuction.getId());
+
+        for (Bid bid : bidList) {
+            System.out.println(bid.getBidPrice());
+        }
+
+        // then
+        assertThat(bidList.size()).isEqualTo(1);
+        assertThat(updatedAuction.getCurrentPrice()).isEqualTo(11000L);
+    }
+
+    @Test
+    @DisplayName("에러 - 존재하지 않는 입찰 Id 로 접근")
+    void getBid_NotFoundBid() {
+        // given
+        UUID InvalidId = UUID.randomUUID();
+
+        // when and then
+        assertThatThrownBy(() -> bidService.getBidByBidId(InvalidId))
+                .isInstanceOf(CustomException.class)
+                .hasMessage("입찰을 찾을 수 없습니다.");
+
     }
 }

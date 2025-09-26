@@ -2,6 +2,7 @@ package com.leehk.auction.domain.bid.infrastructure;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.leehk.auction.domain.auction.infrastructure.AuctionEntity;
+import com.leehk.auction.domain.bid.domain.Bid;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -32,5 +33,12 @@ public class BidEntity {
 
     public void updateAuctionEntity(AuctionEntity auctionEntity) {
         this.auctionEntity = auctionEntity;
+    }
+
+    public void updateFromDomain(Bid bid) {
+        this.bidderId = bid.getBidderId();
+        this.bidPrice = bid.getBidPrice();
+        this.bidTime = bid.getBidTime();
+        // auctionEntity는 변경하지 않음 (연관관계는 외부에서 관리)
     }
 }

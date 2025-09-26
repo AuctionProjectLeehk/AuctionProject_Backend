@@ -42,6 +42,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public boolean isUserExistByEmail(String email) {
+        return userRepository.findByEmail(email).isPresent();
+    }
+
+    @Override
     public User getUserByNickname(String nickname) {
         UserEntity userEntity = userRepository.findByNickname(nickname)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));

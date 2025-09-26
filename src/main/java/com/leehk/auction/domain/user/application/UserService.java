@@ -35,6 +35,14 @@ public interface UserService {
     User getUserByEmail(String email);
 
     /**
+     * 제공된 이메일로 사용자가 존재하는지 확인합니다.
+     *
+     * @param email 존재 여부를 확인할 이메일 주소
+     * @return 해당 이메일을 가진 사용자가 존재하면 true, 아니면 false
+     */
+    boolean isUserExistByEmail(String email);
+
+    /**
      * 사용자를 닉네임으로 조회합니다.
      *
      * @param nickname 조회할 사용자의 닉네임

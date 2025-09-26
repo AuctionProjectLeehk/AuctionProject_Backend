@@ -13,13 +13,13 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
 
-    @Value("${jwt.secret-key}")
+    @Value("${spring.jwt.secret-key}")
     private String secretKey;
 
-    @Value("${jwt.access-token-validity-seconds}")
+    @Value("${spring.jwt.access-token-validity-seconds}")
     private Long accessTokenValiditySeconds;
 
-    @Value("${jwt.refresh-token-validity-seconds}")
+    @Value("${spring.jwt.refresh-token-validity-seconds}")
     private Long refreshTokenValiditySeconds;
 
     /**

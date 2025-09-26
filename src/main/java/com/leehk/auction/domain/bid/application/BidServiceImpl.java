@@ -42,7 +42,15 @@ public class BidServiceImpl implements BidService {
             throw new CustomException(ErrorCode.UNAUTHORIZED_BID_ACTION);
         }
 
-        auctionService.cancelBid(bidEntity.getAuctionEntity().getId(), bidId, bidderId);
+        AuctionEntity auctionEntity = bidEntity.getAuctionEntity();
+        // DB에서 삭제
+        bidRepository.delete(bidEntity);
+
+        // 경매 도메인에서 삭제 및 가격 갱신
+        Auction auction = AuctionConverter.entityToDomain(auctionEntity);
+        auction.cancelBid(bidId, bidderId);
+
+        auctionEntity.updateFromDomain(auction);
     }
 
     @Override

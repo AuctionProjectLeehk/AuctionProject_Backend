@@ -3,10 +3,12 @@ package com.leehk.auction.domain.user.application;
 import com.leehk.auction.domain.auction.BaseH2Test;
 import com.leehk.auction.domain.user.domain.User;
 import com.leehk.auction.global.response.CustomException;
+import com.leehk.auction.global.response.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 
@@ -14,6 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Transactional
 class UserServiceImplTest extends BaseH2Test {
 
@@ -56,6 +59,6 @@ class UserServiceImplTest extends BaseH2Test {
         // when and then
         assertThatThrownBy(() -> userService.getUserById(-1L))
                 .isInstanceOf(CustomException.class)
-                .hasMessage("유저를 찾을 수 없습니다.");
+                .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
     }
 }

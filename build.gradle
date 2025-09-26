@@ -20,6 +20,16 @@ configurations {
 	}
 }
 
+test {
+	useJUnitPlatform()  // JUnit 5를 사용
+	testLogging {
+		events "passed", "skipped", "failed"  // 테스트 결과 출력
+		exceptionFormat "full"
+		showStackTraces true
+	}
+}
+
+
 repositories {
 	mavenCentral()
 }

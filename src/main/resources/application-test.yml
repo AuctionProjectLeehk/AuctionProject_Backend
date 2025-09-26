@@ -13,3 +13,8 @@ spring:
       hibernate:
         format_sql: true
         show_sql: true
+
+  jwt:
+    secret-key: abcdefghijklmnopqrstuvwxyz0123456789
+    access-token-validity-seconds: 100000000
+    refresh-token-validity-seconds: 1000000000

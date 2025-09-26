@@ -19,13 +19,13 @@ public class BidConverter {
         );
     }
 
-    public static BidEntity domainToEntity(Bid bid, Auction auction) {
+    public static BidEntity domainToEntity(Bid bid, AuctionEntity auctionEntity) {
         return BidEntity.builder()
                 .id(bid.getId())
                 .bidderId(bid.getBidderId())
                 .bidPrice(bid.getBidPrice())
                 .bidTime(bid.getBidTime())
-                .auctionEntity(AuctionEntity.builder().id(auction.getId()).build())
+                .auctionEntity(auctionEntity)
                 .build();
     }
 

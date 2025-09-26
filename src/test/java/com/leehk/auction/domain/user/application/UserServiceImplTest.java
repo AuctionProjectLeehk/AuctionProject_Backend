@@ -13,6 +13,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,11 +31,12 @@ class UserServiceImplTest {
 
     @BeforeEach
     void setup() {
+        String uniqueSuffix = UUID.randomUUID().toString().substring(0, 8);
         testUser = User.builder()
                 .email("<EMAIL>")
                 .name("test")
                 .password("<PASSWORD>")
-                .nickname("test")
+                .nickname("test" + uniqueSuffix)
                 .build();
     }
     

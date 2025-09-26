@@ -45,7 +45,7 @@ public class AuctionConverter {
 
         // bids 변환
         auction.getBids().forEach(bid -> {
-            BidEntity bidEntity = BidConverter.domainToEntity(bid, auction);
+            BidEntity bidEntity = BidConverter.domainToEntity(bid, auctionEntity);
             auctionEntity.addBid(bidEntity);
         });
 

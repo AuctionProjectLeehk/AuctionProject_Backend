@@ -50,8 +50,7 @@ class BidRepositoryTest {
         AuctionEntity auctionEntity = AuctionConverter.domainToEntity(testAuction);
         AuctionEntity savedAuctionEntity = auctionRepository.save(auctionEntity);
 
-        Auction savedAuction = AuctionConverter.entityToDomain(savedAuctionEntity);
-        BidEntity bidEntity = BidConverter.domainToEntity(Bid.create(1L, savedAuctionEntity.getId(), 1000L), savedAuction);
+        BidEntity bidEntity = BidConverter.domainToEntity(Bid.create(1L, savedAuctionEntity.getId(), 1000L), savedAuctionEntity);
 
         // when
         BidEntity saved = bidRepository.save(bidEntity);
@@ -70,15 +69,14 @@ class BidRepositoryTest {
         AuctionEntity auctionEntity = AuctionConverter.domainToEntity(testAuction);
         AuctionEntity savedAuctionEntity = auctionRepository.save(auctionEntity);
 
-        Auction savedAuction = AuctionConverter.entityToDomain(savedAuctionEntity);
-        BidEntity bidEntity1 = BidConverter.domainToEntity(Bid.create(1L, savedAuctionEntity.getId(), 1000L), savedAuction);
-        BidEntity bidEntity2 = BidConverter.domainToEntity(Bid.create(2L, savedAuctionEntity.getId(), 1100L), savedAuction);
-        BidEntity bidEntity3 = BidConverter.domainToEntity(Bid.create(3L, savedAuctionEntity.getId(), 1200L), savedAuction);
+        BidEntity bidEntity1 = BidConverter.domainToEntity(Bid.create(1L, savedAuctionEntity.getId(), 1000L), savedAuctionEntity);
+        BidEntity bidEntity2 = BidConverter.domainToEntity(Bid.create(2L, savedAuctionEntity.getId(), 1100L), savedAuctionEntity);
+        BidEntity bidEntity3 = BidConverter.domainToEntity(Bid.create(3L, savedAuctionEntity.getId(), 1200L), savedAuctionEntity);
 
         // when
-        BidEntity saved1 = bidRepository.save(bidEntity1);
-        BidEntity saved2 = bidRepository.save(bidEntity2);
-        BidEntity saved3 = bidRepository.save(bidEntity3);
+        bidRepository.save(bidEntity1);
+        bidRepository.save(bidEntity2);
+        bidRepository.save(bidEntity3);
 
         List<BidEntity> bidEntities = bidRepository.findByAuctionEntity_Id(savedAuctionEntity.getId());
 
@@ -92,14 +90,13 @@ class BidRepositoryTest {
         // given
         AuctionEntity savedAuctionEntity = auctionRepository.save(AuctionConverter.domainToEntity(testAuction));
 
-        Auction savedAuction = AuctionConverter.entityToDomain(savedAuctionEntity);
-        BidEntity bidEntity1 = BidConverter.domainToEntity(Bid.create(1L, savedAuctionEntity.getId(), 1000L), savedAuction);
-        BidEntity bidEntity2 = BidConverter.domainToEntity(Bid.create(2L, savedAuctionEntity.getId(), 1100L), savedAuction);
-        BidEntity bidEntity3 = BidConverter.domainToEntity(Bid.create(1L, savedAuctionEntity.getId(), 1200L), savedAuction);
+        BidEntity bidEntity1 = BidConverter.domainToEntity(Bid.create(1L, savedAuctionEntity.getId(), 1000L), savedAuctionEntity);
+        BidEntity bidEntity2 = BidConverter.domainToEntity(Bid.create(2L, savedAuctionEntity.getId(), 1100L), savedAuctionEntity);
+        BidEntity bidEntity3 = BidConverter.domainToEntity(Bid.create(1L, savedAuctionEntity.getId(), 1200L), savedAuctionEntity);
 
-        BidEntity bid1 = bidRepository.save(bidEntity1);
-        BidEntity bid2 = bidRepository.save(bidEntity2);
-        BidEntity bid3 = bidRepository.save(bidEntity3);
+        bidRepository.save(bidEntity1);
+        bidRepository.save(bidEntity2);
+        bidRepository.save(bidEntity3);
 
         // when
         Optional<BidEntity> highestBid = bidRepository.findTopByAuctionEntity_IdOrderByBidPriceDesc(savedAuctionEntity.getId());

@@ -12,6 +12,7 @@ public enum ErrorCode {
     INVALID_PARAMETER(40001, HttpStatus.BAD_REQUEST, "파라미터가 올바르지 않습니다."),
     BID_TOO_LOW(40002, HttpStatus.BAD_REQUEST, "입찰 금액이 현재 최고가보다 낮습니다."),
     AUCTION_ALREADY_ENDED(40003, HttpStatus.BAD_REQUEST, "이미 종료된 경매입니다."),
+    INVALID_PASSWORD(40004, HttpStatus.BAD_REQUEST, "잘못된 비밀번호 입니다."),
     BAD_REQUEST(40100, HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
 
     // 401 Unauthorized
@@ -33,6 +34,7 @@ public enum ErrorCode {
     DUPLICATE_USER(40901, HttpStatus.CONFLICT, "이미 존재하는 유저입니다."),
 
     // 500 Internal Server Error
+    TOKEN_PROVIDER_ERROR(50001, HttpStatus.INTERNAL_SERVER_ERROR, "토큰 생성 중 에러가 발생하였습니다."),
     INTERNAL_SERVER_ERROR(50000, HttpStatus.INTERNAL_SERVER_ERROR, "서버 에러가 발생하였습니다.");
 
     private final int code;

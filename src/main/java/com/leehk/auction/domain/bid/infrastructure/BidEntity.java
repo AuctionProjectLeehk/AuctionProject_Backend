@@ -1,10 +1,13 @@
 package com.leehk.auction.domain.bid.infrastructure;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.leehk.auction.domain.auction.infrastructure.AuctionEntity;
+import com.leehk.auction.domain.bid.domain.Bid;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "bid")
@@ -15,8 +18,7 @@ import java.time.LocalDateTime;
 public class BidEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private UUID id;
 
     private Long bidderId;
 
@@ -26,5 +28,17 @@ public class BidEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "auction_id")
+    @JsonBackReference
     private AuctionEntity auctionEntity;
+
+    public void updateAuctionEntity(AuctionEntity auctionEntity) {
+        this.auctionEntity = auctionEntity;
+    }
+
+    public void updateFromDomain(Bid bid) {
+        this.bidderId = bid.getBidderId();
+        this.bidPrice = bid.getBidPrice();
+        this.bidTime = bid.getBidTime();
+        // auctionEntity는 변경하지 않음 (연관관계는 외부에서 관리)
+    }
 }

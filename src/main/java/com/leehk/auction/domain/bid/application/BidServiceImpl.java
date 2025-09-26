@@ -3,6 +3,7 @@ package com.leehk.auction.domain.bid.application;
 import com.leehk.auction.domain.auction.application.AuctionService;
 import com.leehk.auction.domain.auction.converter.AuctionConverter;
 import com.leehk.auction.domain.auction.domain.Auction;
+import com.leehk.auction.domain.auction.infrastructure.AuctionEntity;
 import com.leehk.auction.domain.bid.converter.BidConverter;
 import com.leehk.auction.domain.bid.domain.Bid;
 import com.leehk.auction.domain.bid.infrastructure.BidEntity;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -25,26 +27,51 @@ public class BidServiceImpl implements BidService {
     @Override
     @Transactional
     public Bid placeBid(Long auctionId, Long bidderId, long bidPrice) {
-        Auction auction = auctionService.getAuction(auctionId);
+        Auction auction = auctionService.placeBid(auctionId, bidderId, bidPrice);
 
-        Auction tmpAuction = auctionService.placeBid(auctionId, bidPrice);
+        return auction.getHighestBid();
+    }
 
-        return BidConverter.entityToDomain(bidRepository.save(BidEntity.builder()
-                .auctionEntity(AuctionConverter.DomainToEntity(auction))
-                .bidderId(bidderId)
-                .bidPrice(bidPrice)
-                .build()
-        ));
+    @Transactional
+    @Override
+    public void cancelBid(UUID bidId, Long bidderId) {
+        BidEntity bidEntity = bidRepository.findById(bidId)
+                .orElseThrow(() -> new CustomException(ErrorCode.BID_NOT_FOUND));
+
+        if (!bidEntity.getBidderId().equals(bidderId)) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED_BID_ACTION);
+        }
+
+        AuctionEntity auctionEntity = bidEntity.getAuctionEntity();
+        // DB에서 삭제
+        bidRepository.delete(bidEntity);
+
+        // 경매 도메인에서 삭제 및 가격 갱신
+        Auction auction = AuctionConverter.entityToDomain(auctionEntity);
+        auction.cancelBid(bidId, bidderId);
+
+        auctionEntity.updateFromDomain(auction);
     }
 
     @Override
     public List<Bid> getBidByAuctionId(Long auctionId) {
-        if (auctionService.getAuction(auctionId) == null)
-            throw new CustomException(ErrorCode.AUCTION_NOT_FOUND);
-
         return bidRepository.findByAuctionEntity_Id(auctionId)
                 .stream()
                 .map(BidConverter::entityToDomain)
                 .toList();
+    }
+
+    @Override
+    public Bid getBidByBidId(UUID bidId) {
+        return bidRepository.findById(bidId)
+                .map(BidConverter::entityToDomain)
+                .orElseThrow(() -> new CustomException(ErrorCode.BID_NOT_FOUND));
+    }
+
+    @Override
+    public Bid getHighestBid(Long auctionId) {
+        return bidRepository.findTopByAuctionEntity_IdOrderByBidPriceDesc(auctionId)
+                .map(BidConverter::entityToDomain)
+                .orElseThrow(() -> new CustomException(ErrorCode.BID_NOT_FOUND));
     }
 }

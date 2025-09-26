@@ -4,10 +4,17 @@ import com.leehk.auction.domain.auction.domain.Auction;
 import com.leehk.auction.domain.auction.dto.AuctionRequestDto;
 import com.leehk.auction.domain.auction.dto.AuctionResponseDto;
 import com.leehk.auction.domain.auction.infrastructure.AuctionEntity;
+import com.leehk.auction.domain.bid.converter.BidConverter;
+import com.leehk.auction.domain.bid.dto.BidResponseDto;
+import com.leehk.auction.domain.bid.infrastructure.BidEntity;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class AuctionConverter {
 
-    public static Auction EntityToDomain(AuctionEntity auctionEntity) {
+    // Entity → Domain
+    public static Auction entityToDomain(AuctionEntity auctionEntity) {
         return Auction.builder()
                 .id(auctionEntity.getId())
                 .title(auctionEntity.getTitle())
@@ -17,11 +24,15 @@ public class AuctionConverter {
                 .startTime(auctionEntity.getStartTime())
                 .endTime(auctionEntity.getEndTime())
                 .status(auctionEntity.getStatus())
+                .bids(auctionEntity.getBids().stream()
+                        .map(BidConverter::entityToDomain)
+                        .collect(Collectors.toList())) // mutable
                 .build();
     }
-    
-    public static AuctionEntity DomainToEntity(Auction auction) {
-        return AuctionEntity.builder()
+
+    // Domain → Entity (전체 변환)
+    public static AuctionEntity domainToEntity(Auction auction) {
+        AuctionEntity auctionEntity = AuctionEntity.builder()
                 .id(auction.getId())
                 .title(auction.getTitle())
                 .description(auction.getDescription())
@@ -31,9 +42,18 @@ public class AuctionConverter {
                 .endTime(auction.getEndTime())
                 .status(auction.getStatus())
                 .build();
+
+        // bids 변환
+        auction.getBids().forEach(bid -> {
+            BidEntity bidEntity = BidConverter.domainToEntity(bid, auctionEntity);
+            auctionEntity.addBid(bidEntity);
+        });
+
+        return auctionEntity;
     }
 
-    public static Auction DtoToDomain(AuctionRequestDto auctionDto) {
+    // DTO → Domain
+    public static Auction dtoToDomain(AuctionRequestDto auctionDto) {
         return Auction.builder()
                 .id(auctionDto.getId())
                 .title(auctionDto.getTitle())
@@ -45,8 +65,13 @@ public class AuctionConverter {
                 .status(auctionDto.getStatus())
                 .build();
     }
-    
-    public static AuctionResponseDto DomainToDto(Auction auction) {
+
+    // Domain → DTO
+    public static AuctionResponseDto domainToDto(Auction auction) {
+        List<BidResponseDto> bidResponseDtos = auction.getBids().stream()
+                .map(BidConverter::domainToDto)
+                .collect(Collectors.toList());
+
         return AuctionResponseDto.builder()
                 .id(auction.getId())
                 .title(auction.getTitle())
@@ -56,6 +81,7 @@ public class AuctionConverter {
                 .startTime(auction.getStartTime())
                 .endTime(auction.getEndTime())
                 .status(auction.getStatus())
+                .bids(bidResponseDtos)
                 .build();
     }
 }

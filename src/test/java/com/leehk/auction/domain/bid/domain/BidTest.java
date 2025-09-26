@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -27,18 +28,16 @@ class BidTest {
                 .build();
 
         // when
-        Bid bid = Bid.builder()
-                .id(1L)
-                .bidderId(3L)
-                .bidPrice(10000L)
-                .auction(auction)
-                .build();
+        Bid bid = Bid.create(
+                3L,
+                1L,
+                10000L
+        );
 
         // then
         assertThat(bid.getBidderId()).isEqualTo(3L);
-        assertThat(bid.getAuction()).isEqualTo(auction);
+        assertThat(bid.getAuctionId()).isEqualTo(auction.getId());
         assertThat(bid.getBidPrice()).isEqualTo(10000L);
-        assertThat(bid.getId()).isEqualTo(1L);
         assertThat(bid.getBidTime()).isNotNull();
     }
 }

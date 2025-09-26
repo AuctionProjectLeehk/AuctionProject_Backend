@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Builder
@@ -26,21 +27,38 @@ public class Auction {
     private AuctionStatus status;
 
     // 입찰자 관리
-    private final List<Bid> bids = new ArrayList<>();
+    @Builder.Default
+    private List<Bid> bids = new ArrayList<>();
 
     // 입찰 처리
     public Bid placeBid(Long bidderId, long bidPrice) {
         validateBid(bidPrice);
         this.currentPrice = bidPrice;
 
-        Bid bid = Bid.builder()
-                .bidderId(bidderId)
-                .bidPrice(bidPrice)
-                .build();
+        Bid bid = Bid.create(bidderId, this.id, bidPrice);
 
         bids.add(bid);
-        currentPrice = bidPrice;
         return bid;
+    }
+
+    // 입찰 삭제
+    public void cancelBid(UUID bidId, Long bidderId) {
+        Bid bid = bids.stream()
+                .filter(b -> b.getId().equals(bidId))
+                .findFirst()
+                .orElseThrow(() -> new CustomException(ErrorCode.BID_NOT_FOUND));
+
+        // bid 유효성 확인
+        if (!bid.getBidderId().equals(bidderId)) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED_BID_ACTION);
+        }
+        
+        bids.remove(bid);
+
+        currentPrice = bids.stream()
+                .mapToLong(Bid::getBidPrice)
+                .max()
+                .orElse(startPrice);
     }
 
     // 입찰 유효성 확인
@@ -89,5 +107,17 @@ public class Auction {
         this.startPrice = startPrice;
         this.startTime = startTime;
         this.endTime = endTime;
+    }
+
+    // 가격만 업데이트
+    public void updateAuctionPrice(long newPrice) {
+        this.currentPrice = newPrice;
+    }
+
+    // 최대 입찰 반환
+    public Bid getHighestBid() {
+        return bids.stream()
+                .max(Comparator.comparingLong(Bid::getBidPrice))
+                .orElseThrow(() -> new CustomException(ErrorCode.BID_NOT_FOUND));
     }
 }

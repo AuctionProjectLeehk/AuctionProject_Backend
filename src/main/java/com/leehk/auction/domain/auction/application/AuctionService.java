@@ -3,6 +3,7 @@ package com.leehk.auction.domain.auction.application;
 import com.leehk.auction.domain.auction.domain.Auction;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface AuctionService {
 
@@ -58,7 +59,20 @@ public interface AuctionService {
      * @throws com.leehk.auction.global.response.CustomException 경매를 찾을 수 없거나, 경매가 이미 종료되었거나,
      *                                                           입찰가가 현재 가격보다 낮은 경우
      */
-    Auction placeBid(Long auctionId, long bidPrice);
+    Auction placeBid(Long auctionId, Long bidderId, long bidPrice);
+
+    /**
+     * 주어진 경매 ID, 입찰 ID, 입찰자 ID와 관련된 입찰을 취소합니다.
+     * 해당 입찰을 경매에서 제거하고 경매의 현재 가격을 업데이트합니다.
+     *
+     * @param auctionId 취소할 입찰이 포함된 경매의 고유 식별자
+     * @param bidId     취소할 입찰의 고유 식별자
+     * @param bidderId  입찰을 진행한 입찰자의 고유 식별자
+     * @return 입찰 취소 후 업데이트된 {@link Auction} 객체
+     * @throws com.leehk.auction.global.response.CustomException 경매나 입찰을 찾을 수 없거나,
+     *                                                           입찰자가 해당 입찰을 취소할 권한이 없는 경우
+     */
+    Auction cancelBid(Long auctionId, UUID bidId, Long bidderId);
 
     /**
      * 지정된 경매를 종료 처리합니다.

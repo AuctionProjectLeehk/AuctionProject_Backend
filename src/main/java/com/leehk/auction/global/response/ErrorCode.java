@@ -17,6 +17,7 @@ public enum ErrorCode {
     // 401 Unauthorized
     TOKEN_EXPIRED(40201, HttpStatus.UNAUTHORIZED, "토큰이 만료되었습니다."),
     INVALID_TOKEN(40202, HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다"),
+    UNAUTHORIZED_BID_ACTION(40203, HttpStatus.UNAUTHORIZED, "유효하지 않은 입찰에 접근하였습니다."),
     UNAUTHORIZED(40200, HttpStatus.UNAUTHORIZED, "인증이 필요합니다."),
 
     // 403 Forbidden
@@ -25,7 +26,7 @@ public enum ErrorCode {
     // 404 Not Found
     USER_NOT_FOUND(40401, HttpStatus.NOT_FOUND, "유저를 찾을 수 없습니다."),
     AUCTION_NOT_FOUND(40402, HttpStatus.NOT_FOUND, "경매를 찾을 수 없습니다."),
-    BID_NOT_FOUND(40403, HttpStatus.NOT_FOUND, "입찾을 찾을 수 없습니다."),
+    BID_NOT_FOUND(40403, HttpStatus.NOT_FOUND, "입찰을 찾을 수 없습니다."),
     NOT_FOUND(40400, HttpStatus.NOT_FOUND, "찾을 수 없습니다."),
 
     // 409 Conflict

@@ -30,14 +30,14 @@ public class AuctionController {
     @GetMapping("/{auctionId}")
     public ApiResponse<AuctionResponseDto> getAuction(@PathVariable Long auctionId) {
         return ApiResponse.success(SuccessCode.OK,
-                AuctionConverter.DomainToDto(auctionService.getAuction(auctionId)));
+                AuctionConverter.domainToDto(auctionService.getAuction(auctionId)));
     }
 
     @GetMapping("/ongoing")
     public ApiResponse<List<AuctionResponseDto>> getOngoingAuctions() {
         List<AuctionResponseDto> ongoingAuctionDtoList = auctionService.getOngoingAuctions()
                 .stream()
-                .map(AuctionConverter::DomainToDto)
+                .map(AuctionConverter::domainToDto)
                 .toList();
 
         return ApiResponse.success(SuccessCode.OK, ongoingAuctionDtoList);
@@ -45,18 +45,18 @@ public class AuctionController {
 
     @PostMapping
     public ApiResponse<AuctionResponseDto> createAuction(@RequestBody AuctionRequestDto auctionDto) {
-        Auction auction = AuctionConverter.DtoToDomain(auctionDto);
+        Auction auction = AuctionConverter.dtoToDomain(auctionDto);
 
         return ApiResponse.success(SuccessCode.CREATED,
-                AuctionConverter.DomainToDto(auctionService.createAuction(auction)));
+                AuctionConverter.domainToDto(auctionService.createAuction(auction)));
     }
 
     @PutMapping("/{auctionId}")
     public ApiResponse<AuctionResponseDto> updateAuction(@PathVariable Long auctionId, @RequestBody AuctionRequestDto auctionDto) {
-        Auction auction = AuctionConverter.DtoToDomain(auctionDto);
+        Auction auction = AuctionConverter.dtoToDomain(auctionDto);
 
         return ApiResponse.success(SuccessCode.UPDATED,
-                AuctionConverter.DomainToDto(auctionService.updateAuction(auctionId, auction)));
+                AuctionConverter.domainToDto(auctionService.updateAuction(auctionId, auction)));
     }
 
     @DeleteMapping("/{auctionId}")

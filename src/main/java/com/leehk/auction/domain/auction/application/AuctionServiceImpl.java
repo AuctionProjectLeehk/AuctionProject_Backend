@@ -5,6 +5,8 @@ import com.leehk.auction.domain.auction.domain.Auction;
 import com.leehk.auction.domain.auction.enums.AuctionStatus;
 import com.leehk.auction.domain.auction.infrastructure.AuctionEntity;
 import com.leehk.auction.domain.auction.infrastructure.AuctionRepository;
+import com.leehk.auction.domain.user.application.UserService;
+import com.leehk.auction.domain.user.domain.User;
 import com.leehk.auction.global.response.CustomException;
 import com.leehk.auction.global.response.ErrorCode;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +22,7 @@ import java.util.UUID;
 public class AuctionServiceImpl implements AuctionService {
 
     private final AuctionRepository auctionRepository;
+    private final UserService userService;
 
     @Override
     public Auction getAuction(Long auctionId) {
@@ -39,7 +42,11 @@ public class AuctionServiceImpl implements AuctionService {
 
     @Override
     @Transactional
-    public Auction createAuction(Auction auction) {
+    public Auction createAuction(Auction auction, Long userId) {
+        User user = userService.getUserById(userId);
+
+        auction.assignOwner(user);
+
         AuctionEntity auctionEntity = AuctionConverter.domainToEntity(auction);
 
         AuctionEntity savedAuctionEntity = auctionRepository.save(auctionEntity);
@@ -49,19 +56,25 @@ public class AuctionServiceImpl implements AuctionService {
 
     @Override
     @Transactional
-    public Auction updateAuction(Long auctionId, Auction Auction) {
+    public Auction updateAuction(Long auctionId, Auction updatedAuction, Long userId) {
         AuctionEntity auctionEntity = auctionRepository.findById(auctionId)
                 .orElseThrow(() -> new CustomException(ErrorCode.AUCTION_NOT_FOUND));
 
-        auctionEntity.updateFromDomain(Auction);
+
+        if (!auctionEntity.getOwnerEntity().getId().equals(userId))
+            throw new CustomException(ErrorCode.UNAUTHORIZED_AUCTION_ACTION);
+
+        auctionEntity.updateFromDomain(updatedAuction);
         return AuctionConverter.entityToDomain(auctionEntity);
     }
 
     @Override
-    @Transactional
-    public void deleteAuction(Long auctionId) {
+    public void deleteAuction(Long auctionId, Long userId) {
         AuctionEntity auctionEntity = auctionRepository.findById(auctionId)
                 .orElseThrow(() -> new CustomException(ErrorCode.AUCTION_NOT_FOUND));
+
+        if (!auctionEntity.getOwnerEntity().getId().equals(userId))
+            throw new CustomException(ErrorCode.UNAUTHORIZED_AUCTION_ACTION);
 
         auctionRepository.delete(auctionEntity);
     }

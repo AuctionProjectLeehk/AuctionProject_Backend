@@ -17,6 +17,14 @@ public interface UserService {
     User getUserById(Long userId);
 
     /**
+     * 사용자가 고유 식별자로 존재하는지 확인합니다.
+     *
+     * @param userId 존재 여부를 확인할 사용자의 고유 식별자
+     * @return 해당 ID를 가진 사용자가 존재하면 true, 아니면 false
+     */
+    boolean isUserExistById(Long userId);
+
+    /**
      * 사용자를 공개 식별자로 조회합니다.
      *
      * @param publicId 조회할 사용자의 공개 UUID 식별자

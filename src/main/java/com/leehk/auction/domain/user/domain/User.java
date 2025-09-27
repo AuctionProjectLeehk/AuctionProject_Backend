@@ -1,6 +1,6 @@
 package com.leehk.auction.domain.user.domain;
 
-import com.leehk.auction.domain.bid.domain.Bid;
+import com.leehk.auction.domain.auction.domain.Auction;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -24,9 +24,9 @@ public class User {
     private LocalDateTime joinDate = LocalDateTime.now();
 
     @Builder.Default
-    private List<Bid> bids = new ArrayList<>();
+    private List<Auction> auctions = new ArrayList<>();
 
-    public void addBid(Bid bid) {
-        this.bids.add(bid);
+    public void addAuction(Auction auction) {
+        this.auctions.add(auction);
     }
 }

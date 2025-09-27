@@ -2,6 +2,7 @@ package com.leehk.auction.domain.auction.domain;
 
 import com.leehk.auction.domain.auction.enums.AuctionStatus;
 import com.leehk.auction.domain.bid.domain.Bid;
+import com.leehk.auction.domain.user.domain.User;
 import com.leehk.auction.global.response.CustomException;
 import com.leehk.auction.global.response.ErrorCode;
 import lombok.Builder;
@@ -18,6 +19,7 @@ import java.util.UUID;
 public class Auction {
 
     private Long id;
+    private User owner;
     private String title;
     private String description;
     private long startPrice;
@@ -29,6 +31,12 @@ public class Auction {
     // 입찰자 관리
     @Builder.Default
     private List<Bid> bids = new ArrayList<>();
+
+    // owner 관리
+    public void assignOwner(User user) {
+        this.owner = user;
+        owner.addAuction(this);
+    }
 
     // 입찰 처리
     public Bid placeBid(Long bidderId, long bidPrice) {

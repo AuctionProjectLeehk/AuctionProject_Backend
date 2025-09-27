@@ -26,6 +26,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public boolean isUserExistById(Long userId) {
+        return userRepository.findById(userId).isPresent();
+    }
+
+    @Override
     public User getUserByPublicId(UUID publicId) {
         UserEntity userEntity = userRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));

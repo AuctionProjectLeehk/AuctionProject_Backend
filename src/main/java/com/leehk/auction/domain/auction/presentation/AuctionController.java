@@ -5,11 +5,15 @@ import com.leehk.auction.domain.auction.converter.AuctionConverter;
 import com.leehk.auction.domain.auction.domain.Auction;
 import com.leehk.auction.domain.auction.dto.AuctionRequestDto;
 import com.leehk.auction.domain.auction.dto.AuctionResponseDto;
+import com.leehk.auction.domain.user.application.UserService;
+import com.leehk.auction.domain.user.domain.User;
+import com.leehk.auction.global.auth.CustomUserDetails;
 import com.leehk.auction.global.response.ApiResponse;
 import com.leehk.auction.global.response.SuccessCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +25,7 @@ import java.util.List;
 public class AuctionController {
 
     private final AuctionService auctionService;
+    private final UserService userService;
 
     @Operation(summary = "특정 경매 조회", description = "경매 ID로 상세 정보를 가져옵니다")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -44,24 +49,50 @@ public class AuctionController {
     }
 
     @PostMapping
-    public ApiResponse<AuctionResponseDto> createAuction(@RequestBody AuctionRequestDto auctionDto) {
-        Auction auction = AuctionConverter.dtoToDomain(auctionDto);
+    public ApiResponse<AuctionResponseDto> createAuction(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody AuctionRequestDto auctionDto
+    ) {
+        try {
+            System.out.println("auctionDto = " + auctionDto);
 
-        return ApiResponse.success(SuccessCode.CREATED,
-                AuctionConverter.domainToDto(auctionService.createAuction(auction)));
+            Long userId = userDetails.getUserId();
+
+            System.out.println("userId = " + userId);
+            User user = userService.getUserById(userId);
+
+            Auction auction = AuctionConverter.dtoToDomain(auctionDto, user);
+
+            return ApiResponse.success(SuccessCode.CREATED,
+                    AuctionConverter.domainToDto(auctionService.createAuction(auction, userId)));
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     @PutMapping("/{auctionId}")
-    public ApiResponse<AuctionResponseDto> updateAuction(@PathVariable Long auctionId, @RequestBody AuctionRequestDto auctionDto) {
-        Auction auction = AuctionConverter.dtoToDomain(auctionDto);
+    public ApiResponse<AuctionResponseDto> updateAuction(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long auctionId,
+            @RequestBody AuctionRequestDto auctionDto
+    ) {
+        Long userId = userDetails.getUserId();
+        User user = userService.getUserById(userId);
+
+        Auction auction = AuctionConverter.dtoToDomain(auctionDto, user);
 
         return ApiResponse.success(SuccessCode.UPDATED,
-                AuctionConverter.domainToDto(auctionService.updateAuction(auctionId, auction)));
+                AuctionConverter.domainToDto(auctionService.updateAuction(auctionId, auction, userId)));
     }
 
     @DeleteMapping("/{auctionId}")
-    public ApiResponse<Void> deleteAuction(@PathVariable Long auctionId) {
-        auctionService.deleteAuction(auctionId);
+    public ApiResponse<Void> deleteAuction(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long auctionId
+    ) {
+        Long userId = userDetails.getUserId();
+        auctionService.deleteAuction(auctionId, userId);
         return ApiResponse.success(SuccessCode.DELETED, null);
     }
 }

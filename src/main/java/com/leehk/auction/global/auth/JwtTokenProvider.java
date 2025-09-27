@@ -83,6 +83,36 @@ public class JwtTokenProvider {
     }
 
     /**
+     * 주어진 JWT 토큰에서 이메일 클레임을 추출하여 반환합니다.
+     *
+     * @param token 이메일을 추출할 JWT 토큰
+     * @return 이메일 클레임을 String으로 반환하며, 클레임이 존재하지 않거나 유효하지 않은 경우 null을 반환
+     */
+    public String getEmail(String token) {
+        Claims claims = Jwts.parser()
+                .setSigningKey(secretKey.getBytes(StandardCharsets.UTF_8))
+                .parseClaimsJws(token)
+                .getBody();
+
+        return (String) claims.get("email");
+    }
+
+    /**
+     * 제공된 JWT 토큰에서 "닉네임" 클레임을 추출하여 반환합니다.
+     *
+     * @param token 닉네임을 추출할 JWT 토큰
+     * @return 닉네임 클레임을 String으로 반환하며, 클레임이 존재하지 않거나 유효하지 않은 경우 null을 반환
+     */
+    public String getNickname(String token) {
+        Claims claims = Jwts.parser()
+                .setSigningKey(secretKey.getBytes(StandardCharsets.UTF_8))
+                .parseClaimsJws(token)
+                .getBody();
+
+        return (String) claims.get("nickname");
+    }
+
+    /**
      * 설정된 비밀 키를 사용하여 주어진 JWT 토큰을 검증합니다.
      * 토큰이 유효하고 만료되지 않았다면 true를 반환합니다.
      * 예외가 발생하거나 유효하지 않은 경우 false를 반환합니다.

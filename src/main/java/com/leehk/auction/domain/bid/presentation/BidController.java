@@ -5,9 +5,11 @@ import com.leehk.auction.domain.bid.converter.BidConverter;
 import com.leehk.auction.domain.bid.domain.Bid;
 import com.leehk.auction.domain.bid.dto.BidRequestDto;
 import com.leehk.auction.domain.bid.dto.BidResponseDto;
+import com.leehk.auction.global.auth.CustomUserDetails;
 import com.leehk.auction.global.response.ApiResponse;
 import com.leehk.auction.global.response.SuccessCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,16 +22,20 @@ public class BidController {
     private final BidService bidService;
 
     /**
-     * 입찰자 ID와 입찰 금액으로 지정된 경매에 입찰을 진행합니다.
+     * 사용자가 특정 경매에 대해 새로운 입찰을 생성합니다.
      *
-     * @param bidRequestDto 경매 ID, 입찰자 ID, 입찰 금액을 포함하는 입찰 세부 정보
-     * @return 성공적으로 입찰된 세부 정보를 BidResponseDto로 포함하는 ApiResponse
+     * @param userDetails 인증된 사용자의 정보를 포함하는 객체. 여기에서 사용자의 ID를 추출하여 입찰자 정보를 설정합니다.
+     * @param bidRequestDto 입찰 정보를 담고 있는 객체. 경매 ID와 입찰 금액을 포함합니다.
+     * @return 성공 코드와 함께 생성된 입찰에 대한 응답 데이터를 포함하는 ApiResponse 객체
      */
     @PostMapping
     public ApiResponse<BidResponseDto> placeBid(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody BidRequestDto bidRequestDto
     ) {
-        Bid bid = bidService.placeBid(bidRequestDto.getAuctionId(), bidRequestDto.getBidderId(), bidRequestDto.getBidPrice());
+        Long userId = userDetails.getUserId();
+
+        Bid bid = bidService.placeBid(bidRequestDto.getAuctionId(), userId, bidRequestDto.getBidPrice());
 
         return ApiResponse.success(SuccessCode.OK, BidConverter.domainToDto(bid));
     }
@@ -44,7 +50,6 @@ public class BidController {
     public ApiResponse<List<BidResponseDto>> getBidByAuctionId(
             @PathVariable Long auctionId
     ) {
-
 
         return ApiResponse.success(SuccessCode.OK, bidService.getBidByAuctionId(auctionId)
                 .stream()

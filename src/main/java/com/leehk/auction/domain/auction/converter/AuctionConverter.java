@@ -7,6 +7,9 @@ import com.leehk.auction.domain.auction.infrastructure.AuctionEntity;
 import com.leehk.auction.domain.bid.converter.BidConverter;
 import com.leehk.auction.domain.bid.dto.BidResponseDto;
 import com.leehk.auction.domain.bid.infrastructure.BidEntity;
+import com.leehk.auction.domain.user.converter.UserConverter;
+import com.leehk.auction.domain.user.domain.User;
+import com.leehk.auction.domain.user.infrastructure.UserEntity;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,8 +18,11 @@ public class AuctionConverter {
 
     // Entity → Domain
     public static Auction entityToDomain(AuctionEntity auctionEntity) {
+        User owner = UserConverter.entityToDomain(auctionEntity.getOwnerEntity());
+
         return Auction.builder()
                 .id(auctionEntity.getId())
+                .owner(owner)
                 .title(auctionEntity.getTitle())
                 .description(auctionEntity.getDescription())
                 .startPrice(auctionEntity.getStartPrice())
@@ -32,8 +38,11 @@ public class AuctionConverter {
 
     // Domain → Entity (전체 변환)
     public static AuctionEntity domainToEntity(Auction auction) {
+        UserEntity ownerEntity = UserConverter.domainToEntity(auction.getOwner());
+
         AuctionEntity auctionEntity = AuctionEntity.builder()
                 .id(auction.getId())
+                .ownerEntity(ownerEntity)
                 .title(auction.getTitle())
                 .description(auction.getDescription())
                 .startPrice(auction.getStartPrice())
@@ -53,9 +62,10 @@ public class AuctionConverter {
     }
 
     // DTO → Domain
-    public static Auction dtoToDomain(AuctionRequestDto auctionDto) {
+    public static Auction dtoToDomain(AuctionRequestDto auctionDto, User owner) {
         return Auction.builder()
                 .id(auctionDto.getId())
+                .owner(owner)
                 .title(auctionDto.getTitle())
                 .description(auctionDto.getDescription())
                 .startPrice(auctionDto.getStartPrice())

@@ -1,6 +1,5 @@
 package com.leehk.auction.domain.bid.converter;
 
-import com.leehk.auction.domain.auction.domain.Auction;
 import com.leehk.auction.domain.auction.infrastructure.AuctionEntity;
 import com.leehk.auction.domain.bid.domain.Bid;
 import com.leehk.auction.domain.bid.dto.BidRequestDto;
@@ -29,8 +28,8 @@ public class BidConverter {
                 .build();
     }
 
-    public static Bid dtoToDomain(BidRequestDto bidDto) {
-        return Bid.create(bidDto.getBidderId(), bidDto.getAuctionId(), bidDto.getBidPrice());
+    public static Bid dtoToDomain(BidRequestDto bidDto, Long userId) {
+        return Bid.create(userId, bidDto.getAuctionId(), bidDto.getBidPrice());
     }
 
 

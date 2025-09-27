@@ -72,8 +72,8 @@ class BidServiceImplTest extends BaseH2Test {
     @DisplayName("입찰 성공 - 현재가보다 높은 금액으로 입찰")
     void placeBid_success() {
         // given
-        Auction createdAuction = auctionService.createAuction(testAuction);
         User savedUser = userService.saveUser(testUser);
+        Auction createdAuction = auctionService.createAuction(testAuction, savedUser.getId());
 
         // when
         Bid bid = bidService.placeBid(createdAuction.getId(), savedUser.getId(), 11000L);
@@ -89,7 +89,8 @@ class BidServiceImplTest extends BaseH2Test {
     @Test
     void getBidByAuctionId_Success() {
         // given
-        Auction createdAuction = auctionService.createAuction(testAuction);
+        User savedUser = userService.saveUser(testUser);
+        Auction createdAuction = auctionService.createAuction(testAuction, savedUser.getId());
 
         User user1 = User.builder()
                 .email("<EMAIL1>")
@@ -134,8 +135,8 @@ class BidServiceImplTest extends BaseH2Test {
     @DisplayName("동일 사용자가 여러번 입찰 - 가장 높은 입찰만 확인")
     void placeMultipleBids_sameUser() {
         // given
-        Auction createdAuction = auctionService.createAuction(testAuction);
         User savedUser = userService.saveUser(testUser);
+        Auction createdAuction = auctionService.createAuction(testAuction, savedUser.getId());
 
         // when - 여러번 입찰
         bidService.placeBid(createdAuction.getId(), savedUser.getId(), 11000L);
@@ -155,8 +156,8 @@ class BidServiceImplTest extends BaseH2Test {
     @DisplayName("입찰 취소 테스트")
     void cancelBid_Success() {
         // given
-        Auction createdAuction = auctionService.createAuction(testAuction);
         User savedUser = userService.saveUser(testUser);
+        Auction createdAuction = auctionService.createAuction(testAuction, savedUser.getId());
 
         bidService.placeBid(createdAuction.getId(), savedUser.getId(), 11000L);
         bidService.placeBid(createdAuction.getId(), savedUser.getId(), 12000L);

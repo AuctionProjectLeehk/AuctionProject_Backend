@@ -7,6 +7,10 @@ import com.leehk.auction.domain.auction.infrastructure.AuctionEntity;
 import com.leehk.auction.domain.auction.infrastructure.AuctionRepository;
 import com.leehk.auction.domain.bid.converter.BidConverter;
 import com.leehk.auction.domain.bid.domain.Bid;
+import com.leehk.auction.domain.user.converter.UserConverter;
+import com.leehk.auction.domain.user.domain.User;
+import com.leehk.auction.domain.user.infrastructure.UserEntity;
+import com.leehk.auction.domain.user.infrastructure.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,6 +20,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,15 +28,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 class BidRepositoryTest {
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private AuctionRepository auctionRepository;
 
     @Autowired
     private BidRepository bidRepository;
 
+    private User testUser;
     private Auction testAuction;
 
     @BeforeEach
     void setup() {
+        testUser = User.builder()
+                .publicId(UUID.randomUUID())
+                .email("<EMAIL>")
+                .name("test")
+                .password("<PASSWORD>")
+                .nickname("test")
+                .build();
+
         testAuction = Auction.builder()
                 .title("test 경매")
                 .description("test 설명")
@@ -47,6 +64,10 @@ class BidRepositoryTest {
     @DisplayName("bid db에 한명 저장 테스트")
     void saveAndFindBidTest() {
         //given
+        UserEntity userEntity = UserConverter.domainToEntity(testUser);
+        UserEntity savedUserEntity = userRepository.save(userEntity);
+
+        testAuction.assignOwner(UserConverter.entityToDomain(savedUserEntity));
         AuctionEntity auctionEntity = AuctionConverter.domainToEntity(testAuction);
         AuctionEntity savedAuctionEntity = auctionRepository.save(auctionEntity);
 
@@ -66,6 +87,10 @@ class BidRepositoryTest {
     @DisplayName("bid db 에 여러명 저장 후 확인 테스트")
     void saveAndFindAllBidTest() {
         //given
+        UserEntity userEntity = UserConverter.domainToEntity(testUser);
+        UserEntity savedUserEntity = userRepository.save(userEntity);
+
+        testAuction.assignOwner(UserConverter.entityToDomain(savedUserEntity));
         AuctionEntity auctionEntity = AuctionConverter.domainToEntity(testAuction);
         AuctionEntity savedAuctionEntity = auctionRepository.save(auctionEntity);
 
@@ -88,7 +113,12 @@ class BidRepositoryTest {
     @DisplayName("최고 입찰 조회 테스트")
     void findTopBidTest() {
         // given
-        AuctionEntity savedAuctionEntity = auctionRepository.save(AuctionConverter.domainToEntity(testAuction));
+        UserEntity userEntity = UserConverter.domainToEntity(testUser);
+        UserEntity savedUserEntity = userRepository.save(userEntity);
+
+        testAuction.assignOwner(UserConverter.entityToDomain(savedUserEntity));
+        AuctionEntity auctionEntity = AuctionConverter.domainToEntity(testAuction);
+        AuctionEntity savedAuctionEntity = auctionRepository.save(auctionEntity);
 
         BidEntity bidEntity1 = BidConverter.domainToEntity(Bid.create(1L, savedAuctionEntity.getId(), 1000L), savedAuctionEntity);
         BidEntity bidEntity2 = BidConverter.domainToEntity(Bid.create(2L, savedAuctionEntity.getId(), 1100L), savedAuctionEntity);

@@ -19,6 +19,7 @@ public enum ErrorCode {
     TOKEN_EXPIRED(40201, HttpStatus.UNAUTHORIZED, "토큰이 만료되었습니다."),
     INVALID_TOKEN(40202, HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다"),
     UNAUTHORIZED_BID_ACTION(40203, HttpStatus.UNAUTHORIZED, "유효하지 않은 입찰에 접근하였습니다."),
+    UNAUTHORIZED_AUCTION_ACTION(40204, HttpStatus.UNAUTHORIZED, "유효하지 않은 경매에 접근하였습니다."),
     UNAUTHORIZED(40200, HttpStatus.UNAUTHORIZED, "인증이 필요합니다."),
 
     // 403 Forbidden

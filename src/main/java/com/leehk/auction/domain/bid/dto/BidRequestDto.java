@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class BidRequestDto {
 
-    private Long bidderId;
     private long bidPrice;
     private LocalDateTime bidTime;
     private Long auctionId;

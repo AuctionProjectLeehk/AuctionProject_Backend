@@ -1,9 +1,12 @@
 package com.leehk.auction.domain.user.infrastructure;
 
+import com.leehk.auction.domain.auction.infrastructure.AuctionEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -35,6 +38,9 @@ public class UserEntity {
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime joinDate;
+
+    @OneToMany(mappedBy = "ownerEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private final List<AuctionEntity> auctionEntities = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {

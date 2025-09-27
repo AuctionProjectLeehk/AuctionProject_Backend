@@ -6,6 +6,7 @@ import com.leehk.auction.domain.auction.enums.AuctionStatus;
 import com.leehk.auction.domain.bid.converter.BidConverter;
 import com.leehk.auction.domain.bid.domain.Bid;
 import com.leehk.auction.domain.bid.infrastructure.BidEntity;
+import com.leehk.auction.domain.user.infrastructure.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,6 +29,10 @@ public class AuctionEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity ownerEntity;
 
     @Column(nullable = false)
     private String title;

@@ -26,10 +26,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
             Long userId = jwtTokenProvider.getUserId(token);
+            String email = jwtTokenProvider.getEmail(token);
+            String nickname = jwtTokenProvider.getNickname(token);
 
             // SecurityContext 에 인증 정보 세팅
+            CustomUserDetails customUserDetails = new CustomUserDetails(userId, email, nickname, "");
             UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(userId, null, List.of());
+                    new UsernamePasswordAuthenticationToken(
+                            customUserDetails,
+                            null,
+                            customUserDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 

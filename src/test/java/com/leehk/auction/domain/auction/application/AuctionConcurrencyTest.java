@@ -1,15 +1,18 @@
 package com.leehk.auction.domain.auction.application;
 
+import com.leehk.auction.domain.auction.BaseH2Test;
 import com.leehk.auction.domain.auction.domain.Auction;
 import com.leehk.auction.domain.bid.domain.Bid;
+import com.leehk.auction.domain.user.application.UserServiceImpl;
+import com.leehk.auction.domain.user.domain.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -17,17 +20,32 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
-public class AuctionConcurrencyTest {
+public class AuctionConcurrencyTest extends BaseH2Test {
+
+    @Autowired
+    private UserServiceImpl userService;
 
     @Autowired
     private AuctionService auctionService;
 
     private Auction auction;
     private final int threadCount = 5;
+    private List<User> auctionUsers;
 
     @BeforeEach
     void setup() {
+        auctionUsers = new ArrayList<>();
+        for (int i = 0; i < threadCount; i++) {
+            User testUser = User.builder()
+                    .email("test" + UUID.randomUUID() + "@example.com")
+                    .name("test" + i)
+                    .password("password")
+                    .nickname("AuctionConcurrencyTestUser" + UUID.randomUUID().toString().substring(0,8))
+                    .build();
+            User savedUser = userService.saveUser(testUser);
+            auctionUsers.add(savedUser);
+        }
+
         auction = Auction.builder()
                 .title("Concurrent Auction")
                 .description("Testing concurrency")
@@ -37,7 +55,7 @@ public class AuctionConcurrencyTest {
                 .endTime(java.time.LocalDateTime.now().plusDays(1))
                 .status(com.leehk.auction.domain.auction.enums.AuctionStatus.ONGOING)
                 .build();
-        auction = auctionService.createAuction(auction, 1L); // Assuming userId 1L exists
+        auction = auctionService.createAuction(auction, auctionUsers.get(0).getId());
     }
 
     /**
@@ -56,7 +74,7 @@ public class AuctionConcurrencyTest {
         IntStream.range(0, threadCount).forEach(i -> {
             executorService.submit(() -> {
                 try {
-                    Long bidderId = (long) i + 1; // 사용자 ID는 1부터 10까지 존재한다고 가정
+                    Long bidderId = auctionUsers.get(i).getId();
                     long bidPrice = 1000 + (i + 1) * 100L; // 입찰가: 1100, 1200, ..., 1500
                     auctionService.placeBid(auction.getId(), bidderId, bidPrice);
                 } finally {
@@ -71,7 +89,7 @@ public class AuctionConcurrencyTest {
         // then: 최종 경매 상태 확인
         Auction updatedAuction = auctionService.getAuction(auction.getId());
         assertThat(updatedAuction.getCurrentPrice()).isEqualTo(1000L + threadCount * 100L); // 가장 높은 입찰가 확인
-        assertThat(updatedAuction.getHighestBidderId()).isEqualTo(Long.valueOf(threadCount)); // 가장 높은 입찰자 확인
+        assertThat(updatedAuction.getHighestBidderId()).isEqualTo(auctionUsers.get(auctionUsers.size()-1).getId()); // 가장 높은 입찰자 확인
     }
 
     /**
@@ -91,7 +109,7 @@ public class AuctionConcurrencyTest {
         IntStream.range(0, threadCount).forEach(i -> {
             executorService.submit(() -> {
                 try {
-                    Long bidderId = (long) i + 1; // Assuming userIds 1L to 10L exist
+                    Long bidderId = auctionUsers.get(i).getId();
                     try {
                         auctionService.placeBid(auction.getId(), bidderId, bidPrice);
                     } catch (IllegalArgumentException e) {
@@ -123,8 +141,8 @@ public class AuctionConcurrencyTest {
     void cancelBidsConcurrentlyBDD() throws InterruptedException {
         // given: 모든 사용자가 입찰 완료
         IntStream.range(0, threadCount).forEach(i -> {
-            Long bidderId = (long) i + 1; // 사용자 ID는 1부터 10까지 존재한다고 가정
-            long bidPrice = 1000 + (i + 1) * 100L; // 입찰가: 1100, 1200, ..., 2000
+            Long bidderId = auctionUsers.get(i).getId();
+            long bidPrice = 1000 + (i + 1) * 100L; // 입찰가: 1100, 1200, ..., 1500
             auctionService.placeBid(auction.getId(), bidderId, bidPrice);
         });
 
@@ -173,8 +191,8 @@ public class AuctionConcurrencyTest {
         IntStream.range(0, threadCount).forEach(i -> {
             executorService.submit(() -> {
                 try {
-                    Long bidderId = (long) i + 1; // 사용자 ID는 1부터 10까지 존재한다고 가정
-                    long bidPrice = 1000 + (i + 1) * 100L; // 입찰가: 1100, 1200, ..., 2000
+                    Long bidderId = auctionUsers.get(i).getId();
+                    long bidPrice = 1000 + (i + 1) * 100L; // 입찰가: 1100, 1200, ..., 1500
                     auctionService.placeBid(auction.getId(), bidderId, bidPrice);
                 } finally {
                     countDownLatch.countDown();
@@ -188,6 +206,6 @@ public class AuctionConcurrencyTest {
         // then: 최고 입찰자와 가격 확인
         Auction updatedAuction = auctionService.getAuction(auction.getId());
         assertThat(updatedAuction.getCurrentPrice()).isEqualTo(1000L + threadCount * 100L); // 가장 높은 입찰가 확인
-        assertThat(updatedAuction.getHighestBidderId()).isEqualTo(Long.valueOf(threadCount)); // 가장 높은 입찰자 확인
+        assertThat(updatedAuction.getHighestBidderId()).isEqualTo(auctionUsers.get(auctionUsers.size()-1).getId()); // 가장 높은 입찰자 확인
     }
 }

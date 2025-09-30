@@ -82,7 +82,7 @@ public class AuctionServiceImpl implements AuctionService {
     @Override
     @Transactional
     public Auction placeBid(Long auctionId, Long bidderId, long bidPrice) {
-        AuctionEntity auctionEntity = auctionRepository.findById(auctionId)
+        AuctionEntity auctionEntity = auctionRepository.findByIdForUpdate(auctionId)
                 .orElseThrow(() -> new CustomException(ErrorCode.AUCTION_NOT_FOUND));
 
         Auction auction = AuctionConverter.entityToDomain(auctionEntity);
@@ -91,13 +91,15 @@ public class AuctionServiceImpl implements AuctionService {
 
         auctionEntity.updateFromDomain(auction);
 
+        auctionRepository.saveAndFlush(auctionEntity);
+
         return auction;
     }
 
     @Override
     @Transactional
     public Auction cancelBid(Long auctionId, UUID bidId, Long bidderId) {
-        AuctionEntity auctionEntity = auctionRepository.findById(auctionId)
+        AuctionEntity auctionEntity = auctionRepository.findByIdForUpdate(auctionId)
                 .orElseThrow(() -> new CustomException(ErrorCode.AUCTION_NOT_FOUND));
 
         // domain
@@ -108,6 +110,8 @@ public class AuctionServiceImpl implements AuctionService {
 
         // entity 수정
         auctionEntity.updateFromDomain(auction);
+
+        auctionRepository.saveAndFlush(auctionEntity);
 
         return auction;
     }

@@ -14,4 +14,8 @@ public interface AuctionRepository {
     List<AuctionEntity> findByStatus(AuctionStatus auctionStatus);
 
     void delete(AuctionEntity auctionEntity);
+
+    Optional<AuctionEntity> findByIdForUpdate(Long id);
+
+    <S extends AuctionEntity> S saveAndFlush(S auctionEntity);
 }

@@ -6,5 +6,6 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface BidJpaRepository extends BidRepository, JpaRepository<BidEntity, UUID> {
+public interface AutoJpaBidRepository extends AutoBidRepository, JpaRepository<AutoBidEntity, UUID> {
 }
+

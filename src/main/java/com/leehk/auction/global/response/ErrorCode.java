@@ -32,6 +32,7 @@ public enum ErrorCode {
     USER_NOT_FOUND(40401, HttpStatus.NOT_FOUND, "유저를 찾을 수 없습니다."),
     AUCTION_NOT_FOUND(40402, HttpStatus.NOT_FOUND, "경매를 찾을 수 없습니다."),
     BID_NOT_FOUND(40403, HttpStatus.NOT_FOUND, "입찰을 찾을 수 없습니다."),
+    AUTO_BID_NOT_FOUND(40404, HttpStatus.NOT_FOUND, "자동 입찰을 찾을 수 없습니다."),
     NOT_FOUND(40400, HttpStatus.NOT_FOUND, "찾을 수 없습니다."),
 
     // 409 Conflict

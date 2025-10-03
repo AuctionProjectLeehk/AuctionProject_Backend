@@ -58,7 +58,7 @@ public class AutoBid {
 
         return new AutoBid(this.id, this.autoBidderId, this.auctionId,
                 this.maxAutoBidPrice, newCurrentAutoBidPrice,
-                this.active, this.createdAt, LocalDateTime.now());
+                true, this.createdAt, LocalDateTime.now());
     }
 
     public AutoBid updateMaxAutoBidPrice(long newMaxPrice) {
@@ -68,7 +68,7 @@ public class AutoBid {
 
         return new AutoBid(this.id, this.autoBidderId, this.auctionId,
                 newMaxPrice, this.currentAutoBidPrice,
-                this.active, this.createdAt, LocalDateTime.now());
+                true, this.createdAt, LocalDateTime.now());
     }
 
     public AutoBid deactivate() {

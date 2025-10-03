@@ -26,6 +26,15 @@ class AutoBidTest {
     }
 
     @Test
+    @DisplayName("자동 입찰 생성 실패 - 현재가가 최대 입찰가 초과")
+    void create_Fail_CurrentPriceExceedsMax() {
+        // when and then
+        assertThatThrownBy(() -> AutoBid.create(1L, 1L, 5000L, 6000L))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.INVALID_AUTO_BID_CURRENT_PRICE.getMessage());
+    }
+
+    @Test
     @DisplayName("자동 입찰 현재 입찰가 수정 성공")
     void updateCurrentAutoBidPrice_Success() {
         // given

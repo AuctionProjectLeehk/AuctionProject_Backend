@@ -11,6 +11,7 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Getter
 @Builder
@@ -142,6 +143,12 @@ public class Auction {
      * @return 생성되거나 업데이트된 자동 입찰 객체
      */
     public AutoBid registerAutoBid(Long userId, long maxAutoBidPrice) {
+        // 설정한 최대가가 해당 경매의 현재가 이하인 경우 에러처리
+        if (maxAutoBidPrice <= this.currentPrice) {
+            throw new CustomException(ErrorCode.INVALID_AUTO_BID_CREATE);
+        }
+
+        // 기존 자동 입찰이 있는지 확인
         Optional<AutoBid> existingAutoBid = autoBids.stream()
                 .filter(ab -> ab.getAutoBidderId().equals(userId))
                 .findFirst();
@@ -154,75 +161,92 @@ public class Auction {
             return updatedAutoBid;
         }
 
-        AutoBid autoBid = AutoBid.create(userId, this.id, maxAutoBidPrice);
+        AutoBid autoBid = AutoBid.create(userId, this.id, maxAutoBidPrice, Math.max(this.currentPrice, 0));
         autoBids.add(autoBid);
         return autoBid;
     }
 
     /**
-     * 활성화된 자동 입찰들을 실행합니다.
-     * 각각의 활성화된 자동 입찰은 현재 입찰가 기준 내림차순으로 처리됩니다.
-     * 최대 자동 입찰가가 허용하는 한 최소 단위로 입찰가를 증가시키며 입찰을 진행합니다.
-     * 더 이상 진행 가능한 자동 입찰이 없을 때까지 반복합니다.
+     * 경매에 대한 자동 입찰 프로세스를 실행합니다.
+     * 이 메서드는 최대 입찰가 기준 내림차순으로 모든 활성화된 자동 입찰을 처리하며,
+     * 최소 입찰 단위를 준수하면서 가장 높은 유효한 입찰이 이루어지도록 합니다.
+     * 이 과정에서 이루어진 모든 입찰은 경매의 현재 가격을 업데이트하고 새로운 Bid 객체를 생성합니다.
+     * 여러 개의 자동 입찰이 활성화되어 있는 경우, 다음 입찰가는 두 번째로 높은 최대 입찰가에
+     * 최소 입찰 단위를 조정하여 결정되며, 이를 통해 경쟁적인 입찰을 보장합니다.
+     * 자동 입찰은 프로세스 결과에 따라 비활성화되거나 현재 입찰가가 적절히 조정됩니다.
      *
-     * @return 자동 입찰 실행으로 생성된 새로운 입찰 목록
+     * @return 경매의 자동 입찰 프로세스 중 생성된 새로운 Bid 객체들의 목록
      */
     public List<Bid> executeAutoBids() {
-        boolean bidPlaced;
+        int minGap = 1; // 최소 입찰 단위
         List<Bid> newBids = new ArrayList<>();
 
-        do {
-            bidPlaced = false;
+        while (true) {
+            // 활성화된 자동 입찰을 최대 입찰가 기준 내림차순, 업데이트 순서 기준 정렬
+            List<AutoBid> activeAutoBids = autoBids.stream()
+                    .filter(AutoBid::isActive)
+                    .sorted(Comparator
+                            .comparingLong(AutoBid::getMaxAutoBidPrice).reversed()
+                            .thenComparing(AutoBid::getUpdatedAt)
+                    )
+                    .toList();
 
-            for (AutoBid autoBid : getActiveAutoBidsSorted()) {
-                long nextBidPrice = this.currentPrice + 1; // 최소 단위로 입찰가 증가
+            // 활성화된 자동 입찰이 없으면 종료
+            if (activeAutoBids.isEmpty()) break;
 
-                if (autoBid.getCurrentAutoBidPrice() >= nextBidPrice) {
-                    Bid bid = Bid.create(autoBid.getAutoBidderId(), this.id, nextBidPrice);
-                    bids.add(bid);
-                    this.currentPrice = nextBidPrice;
+            AutoBid topAutoBid = activeAutoBids.get(0);
+            long nextBidPrice = this.currentPrice + minGap;
 
-                    // 자동 입찰의 현재 입찰가 갱신
-                    autoBids.remove(autoBid);
-                    autoBids.add(autoBid.updateCurrentAutoBidPrice(nextBidPrice));
+            // 활성화된 자동 입찰의 최대가가 현재가보다 높지 않으면 종료
+            if (topAutoBid.getMaxAutoBidPrice() < nextBidPrice) break;
 
-                    newBids.add(bid);
-                    bidPlaced = true;
-                    break;
-                }
+            // 설정된 자동 입찰이 하나 초과인 경우 두번째 최대 입찰가 + gap 가격으로 입찰가 설정
+            if (activeAutoBids.size() > 1) {
+                long secondMaxBidPrice = activeAutoBids.get(1).getMaxAutoBidPrice();
+                nextBidPrice = Math.max(nextBidPrice, secondMaxBidPrice + 1);
             }
-        } while (bidPlaced);
+
+            Bid bid = Bid.create(topAutoBid.getAutoBidderId(), this.id, nextBidPrice);
+            bids.add(bid);
+            this.currentPrice = nextBidPrice;
+            newBids.add(bid);
+
+            autoBids.remove(topAutoBid);  // top 삭제
+            autoBids = autoBids.stream()  // 나머지 비활성화
+                    .map(AutoBid::deactivate)
+                    .collect(Collectors.toCollection(ArrayList::new));
+            autoBids.add(topAutoBid.updateCurrentAutoBidPrice(nextBidPrice));  // top 현재가만 수정해서 다시 넣기
+        }
 
         return newBids;
     }
 
-    // 활성화된 자동 입찰 목록을 현재 입찰가 기준 내림차순 정렬
-    private List<AutoBid> getActiveAutoBidsSorted() {
-        List<AutoBid> activeAutoBids = new ArrayList<>();
-
-        for (AutoBid autoBid : autoBids) {
-            if (autoBid.isActive()) {
-                activeAutoBids.add(autoBid);
-            }
-        }
-
-        activeAutoBids.sort(Comparator.comparingLong(AutoBid::getCurrentAutoBidPrice).reversed());
-        return activeAutoBids;
+    /**
+     * 특정 사용자의 자동 입찰 기능을 비활성화합니다.
+     * 해당 사용자의 활성화된 자동 입찰이 있다면 비활성화 됩니다.
+     *
+     * @param userId 자동 입찰을 비활성화할 사용자의 고유 식별자
+     */
+    public void deactivateAutoBidByUserId(Long userId) {
+        autoBids = autoBids.stream()
+                .map(ab -> ab.getAutoBidderId().equals(userId) && ab.isActive()
+                        ? ab.deactivate()
+                        : ab)
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     /**
-     * 특정 사용자의 자동 입찰을 비활성화합니다.
-     * 해당 사용자 ID와 연결된 활성화된 자동 입찰을 찾아 비활성화 처리하고,
-     * 비활성화된 버전으로 자동 입찰 목록을 갱신합니다.
+     * 고유 식별자(autoBidId)로 식별된 자동 입찰을 비활성화합니다.
+     * 자동 입찰이 활성화되어 있고 제공된 식별자와 일치하는 경우
+     * 비활성화되고 자동 입찰 목록에 업데이트됩니다.
      *
-     * @param userId 자동 입찰을 비활성화할 사용자 ID
+     * @param autoBidId 비활성화할 자동 입찰의 고유 식별자
      */
-    public void deactivateAutoBid(Long userId) {
-        autoBids.stream()
-                .filter(ab -> ab.getAutoBidderId().equals(userId) && ab.isActive())
-                .forEach(ab -> {
-                    autoBids.remove(ab);
-                    autoBids.add(ab.deactivate());
-                });
+    public void deactivateAutoBidByAutoBidId(UUID autoBidId) {
+        autoBids = autoBids.stream()
+                .map(ab -> ab.getId().equals(autoBidId) && ab.isActive()
+                        ? ab.deactivate()
+                        : ab)
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 }

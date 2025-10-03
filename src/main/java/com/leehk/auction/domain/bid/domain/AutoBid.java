@@ -30,13 +30,17 @@ public class AutoBid {
         this.updatedAt = updatedAt;
     }
 
-    public static AutoBid create(Long userId, Long auctionId, long maxAutoBidPrice) {
+    public static AutoBid create(Long userId, Long auctionId, long maxAutoBidPrice, long currentAutoBidPrice) {
+        if (currentAutoBidPrice > maxAutoBidPrice) {
+            throw new CustomException(ErrorCode.INVALID_AUTO_BID_CURRENT_PRICE);
+        }
+
         LocalDateTime now = LocalDateTime.now();
         return new AutoBid(UUID.randomUUID(),
                 userId,
                 auctionId,
                 maxAutoBidPrice,
-                0,
+                currentAutoBidPrice,
                 true,
                 now,
                 now

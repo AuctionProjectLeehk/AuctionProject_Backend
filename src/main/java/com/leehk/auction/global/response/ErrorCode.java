@@ -13,7 +13,8 @@ public enum ErrorCode {
     BID_TOO_LOW(40002, HttpStatus.BAD_REQUEST, "입찰 금액이 현재 최고가보다 낮습니다."),
     AUCTION_ALREADY_ENDED(40003, HttpStatus.BAD_REQUEST, "이미 종료된 경매입니다."),
     INVALID_PASSWORD(40004, HttpStatus.BAD_REQUEST, "잘못된 비밀번호 입니다."),
-    INVALID_AUTO_BID_PRICE(40005, HttpStatus.BAD_REQUEST, "자동 입찰가가 현재 최대 입찰가보다 낮습니다."),
+    INVALID_AUTO_BID_CURRENT_PRICE(40005, HttpStatus.BAD_REQUEST, "현재 입찰가는 최대 입찰가 이하이어야 합니다."),
+    INVALID_AUTO_BID_MAX_PRICE(40006, HttpStatus.BAD_REQUEST, "최대 입찰가는 현재 입찰가 이상이어야 합니다."),
     BAD_REQUEST(40100, HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
 
     // 401 Unauthorized

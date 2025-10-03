@@ -45,6 +45,7 @@ class AutoBidTest {
 
         // then
         assertThat(updatedAutoBid.getCurrentAutoBidPrice()).isEqualTo(3000L);
+        assertThat(updatedAutoBid.isActive()).isTrue();
     }
 
     @Test
@@ -71,6 +72,7 @@ class AutoBidTest {
 
         // then
         assertThat(updatedAutoBid2.getMaxAutoBidPrice()).isEqualTo(10000L);
+        assertThat(updatedAutoBid2.isActive()).isTrue();
     }
 
     @Test

@@ -41,7 +41,16 @@ public class Auction {
         owner.addAuction(this);
     }
 
-    // 입찰 등록
+    /**
+     * 입찰자 ID와 입찰가로 새로운 입찰을 등록합니다.
+     * 입찰의 유효성을 검사하고 경매의 현재가를 업데이트합니다.
+     * 새로운 Bid 객체가 생성되어 경매의 입찰 목록에 추가됩니다.
+     *
+     * @param bidderId 입찰을 하는 입찰자의 ID
+     * @param bidPrice 입찰 가격
+     * @return 입찰 정보가 담긴 새로운 Bid 객체
+     * @throws CustomException 경매가 종료되었거나 입찰가가 너무 낮은 경우와 같은 유효하지 않은 입찰일 때
+     */
     public Bid placeBid(Long bidderId, long bidPrice) {
         validateBid(bidPrice);
         this.currentPrice = bidPrice;
@@ -52,7 +61,14 @@ public class Auction {
         return bid;
     }
 
-    // 입찰 취소
+    /**
+     * 경매의 입찰을 취소합니다. 입찰자 ID가 원래 입찰자와 일치하는 경우에만 취소가 가능합니다.
+     * 경매의 현재가는 남은 입찰 중 최고가 또는 입찰이 없는 경우 시작가로 업데이트됩니다.
+     *
+     * @param bidId    취소할 입찰의 고유 식별자
+     * @param bidderId 입찰을 취소하려는 입찰자의 ID
+     * @throws CustomException 입찰을 찾을 수 없거나 입찰자가 취소 권한이 없는 경우
+     */
     public void cancelBid(UUID bidId, Long bidderId) {
         Bid bid = bids.stream()
                 .filter(b -> b.getId().equals(bidId))
@@ -73,7 +89,13 @@ public class Auction {
                 .orElse(startPrice);
     }
 
-    // 입찰 유효성 검사
+    /**
+     * 입찰가가 경매 조건을 충족하는지 검증합니다.
+     * 경매가 더 이상 진행 중이 아니거나 입찰가가 현재 경매가를 초과하지 않으면 예외를 발생시킵니다.
+     *
+     * @param bidPrice 검증할 입찰가
+     * @throws CustomException 경매가 진행 중이 아니거나 입찰가가 너무 낮은 경우
+     */
     public void validateBid(long bidPrice) {
         // 경매 진행중 확인
         if (status != AuctionStatus.ONGOING) {
@@ -86,7 +108,13 @@ public class Auction {
         }
     }
 
-    // 최고 입찰자 ID 조회
+    /**
+     * 입찰 목록에서 최고 입찰자의 ID를 조회합니다.
+     * 최고 입찰자는 최고 입찰가를 기준으로 결정됩니다.
+     * 입찰이 없는 경우 null을 반환합니다.
+     *
+     * @return 최고 입찰자의 ID 또는 입찰이 없는 경우 null
+     */
     public Long getHighestBidderId() {
         return bids.stream()
                 .max(Comparator.comparingLong(Bid::getBidPrice))
@@ -94,12 +122,21 @@ public class Auction {
                 .orElse(null);
     }
 
-    // 전체 입찰 목록 조회
+    /**
+     * 경매에 등록된 모든 입찰 목록을 조회합니다.
+     *
+     * @return 경매와 관련된 모든 입찰을 포함하는 목록
+     */
     public List<Bid> getBids() {
         return new ArrayList<>(bids);
     }
 
-    // 경매 종료
+    /**
+     * 경매의 상태를 ENDED로 변경하여 종료합니다.
+     * 이미 종료된 경매인 경우 예외가 발생합니다.
+     *
+     * @throws CustomException 경매 상태가 이미 ENDED인 경우
+     */
     public void endAuction() {
         if (status == AuctionStatus.ENDED) {
             throw new CustomException(ErrorCode.AUCTION_ALREADY_ENDED);
@@ -108,7 +145,17 @@ public class Auction {
         this.status = AuctionStatus.ENDED;
     }
 
-    // 경매 정보 수정
+    /**
+     * 경매의 제목, 설명, 시작가, 시작 시간, 종료 시간을 포함한 상세 정보를 업데이트합니다.
+     * 이미 종료된 경매인 경우 예외가 발생합니다.
+     *
+     * @param title       경매의 새로운 제목
+     * @param description 경매의 새로운 설명
+     * @param startPrice  경매의 새로운 시작가
+     * @param startTime   경매의 새로운 시작 시간
+     * @param endTime     경매의 새로운 종료 시간
+     * @throws CustomException 경매 상태가 이미 ENDED인 경우
+     */
     public void updateAuction(String title, String description, long startPrice, LocalDateTime startTime, LocalDateTime endTime) {
         if (status == AuctionStatus.ENDED) {
             throw new CustomException(ErrorCode.AUCTION_ALREADY_ENDED);
@@ -121,12 +168,23 @@ public class Auction {
         this.endTime = endTime;
     }
 
-    // 경매 현재가 수정
+    /**
+     * 경매의 현재가를 지정된 새로운 가격으로 업데이트합니다.
+     *
+     * @param newPrice 경매의 새로운 가격. 양수여야 합니다.
+     */
     public void updateAuctionPrice(long newPrice) {
         this.currentPrice = newPrice;
     }
 
-    // 최고 입찰 조회
+    /**
+     * 경매에서 가장 높은 입찰을 조회합니다.
+     * 최고 입찰은 입찰가를 기준으로 결정됩니다.
+     * 입찰이 없는 경우 예외가 발생합니다.
+     *
+     * @return 경매의 최고 입찰을 나타내는 Bid 객체
+     * @throws CustomException 입찰을 찾을 수 없는 경우
+     */
     public Bid getHighestBid() {
         return bids.stream()
                 .max(Comparator.comparingLong(Bid::getBidPrice))
@@ -236,9 +294,8 @@ public class Auction {
     }
 
     /**
-     * 고유 식별자(autoBidId)로 식별된 자동 입찰을 비활성화합니다.
-     * 자동 입찰이 활성화되어 있고 제공된 식별자와 일치하는 경우
-     * 비활성화되고 자동 입찰 목록에 업데이트됩니다.
+     * 특정 자동 입찰을 고유 식별자로 찾아 비활성화합니다.
+     * 자동 입찰이 활성화되어 있고 제공된 식별자와 일치하는 경우 비활성화됩니다.
      *
      * @param autoBidId 비활성화할 자동 입찰의 고유 식별자
      */

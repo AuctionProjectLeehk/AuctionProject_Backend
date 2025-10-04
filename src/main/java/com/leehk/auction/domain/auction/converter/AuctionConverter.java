@@ -4,8 +4,10 @@ import com.leehk.auction.domain.auction.domain.Auction;
 import com.leehk.auction.domain.auction.dto.AuctionRequestDto;
 import com.leehk.auction.domain.auction.dto.AuctionResponseDto;
 import com.leehk.auction.domain.auction.infrastructure.AuctionEntity;
+import com.leehk.auction.domain.bid.converter.AutoBidConverter;
 import com.leehk.auction.domain.bid.converter.BidConverter;
 import com.leehk.auction.domain.bid.dto.BidResponseDto;
+import com.leehk.auction.domain.bid.infrastructure.AutoBidEntity;
 import com.leehk.auction.domain.bid.infrastructure.BidEntity;
 import com.leehk.auction.domain.user.converter.UserConverter;
 import com.leehk.auction.domain.user.domain.User;
@@ -33,6 +35,9 @@ public class AuctionConverter {
                 .bids(auctionEntity.getBids().stream()
                         .map(BidConverter::entityToDomain)
                         .collect(Collectors.toList())) // mutable
+                .autoBids(auctionEntity.getAutoBids().stream()
+                        .map(AutoBidConverter::entityToDomain)
+                        .collect(Collectors.toList()))
                 .build();
     }
 
@@ -56,6 +61,12 @@ public class AuctionConverter {
         auction.getBids().forEach(bid -> {
             BidEntity bidEntity = BidConverter.domainToEntity(bid, auctionEntity);
             auctionEntity.addBid(bidEntity);
+        });
+
+        // autoBids 변환
+        auction.getAutoBids().forEach(autoBid -> {
+            AutoBidEntity autoBidEntity = AutoBidConverter.domainToEntity(autoBid, auctionEntity);
+            auctionEntity.addAutoBid(autoBidEntity);
         });
 
         return auctionEntity;

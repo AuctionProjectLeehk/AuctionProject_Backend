@@ -5,6 +5,7 @@ import com.leehk.auction.domain.auction.domain.Auction;
 import com.leehk.auction.domain.auction.enums.AuctionStatus;
 import com.leehk.auction.domain.bid.converter.BidConverter;
 import com.leehk.auction.domain.bid.domain.Bid;
+import com.leehk.auction.domain.bid.infrastructure.AutoBidEntity;
 import com.leehk.auction.domain.bid.infrastructure.BidEntity;
 import com.leehk.auction.domain.user.infrastructure.UserEntity;
 import jakarta.persistence.*;
@@ -62,6 +63,11 @@ public class AuctionEntity {
     @Builder.Default
     private List<BidEntity> bids = new ArrayList<>();
 
+    @OneToMany(mappedBy = "auctionEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    @Builder.Default
+    private List<AutoBidEntity> autoBids = new ArrayList<>();
+
     public void addBid(BidEntity bidEntity) {
         bids.add(bidEntity);
         bidEntity.updateAuctionEntity(this);
@@ -113,5 +119,10 @@ public class AuctionEntity {
         // 이제 컬렉션을 현재 상태로 맞춤: (clear + addAll) — 기존 영속 객체 재사용됨
         this.bids.clear();
         this.bids.addAll(newList);
+    }
+
+    public void addAutoBid(AutoBidEntity autoBidEntity) {
+        autoBids.add(autoBidEntity);
+        autoBidEntity.updateAuctionEntity(this);
     }
 }

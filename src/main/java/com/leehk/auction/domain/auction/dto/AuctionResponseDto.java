@@ -1,6 +1,7 @@
 package com.leehk.auction.domain.auction.dto;
 
 import com.leehk.auction.domain.auction.enums.AuctionStatus;
+import com.leehk.auction.domain.bid.dto.AutoBidResponseDto;
 import com.leehk.auction.domain.bid.dto.BidResponseDto;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,4 +22,5 @@ public class AuctionResponseDto {
     private LocalDateTime endTime;
     private AuctionStatus status;
     private List<BidResponseDto> bids;
+    private List<AutoBidResponseDto> autoBids;
 }

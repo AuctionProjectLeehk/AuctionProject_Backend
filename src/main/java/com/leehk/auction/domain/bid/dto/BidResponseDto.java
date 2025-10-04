@@ -3,6 +3,7 @@ package com.leehk.auction.domain.bid.dto;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -13,4 +14,5 @@ public class BidResponseDto {
     private Long bidderId;
     private long bidPrice;
     private Long auctionId;
+    private LocalDateTime bidTime;
 }

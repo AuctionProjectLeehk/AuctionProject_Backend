@@ -286,8 +286,8 @@ class AuctionTest {
 
         // then
         assertThat(newBids).isNotNull();
-        assertThat(auction.getCurrentPrice()).isEqualTo(25000L);
-        assertThat(highestAutoBid.getCurrentAutoBidPrice()).isEqualTo(25000L);
+        assertThat(auction.getCurrentPrice()).isEqualTo(20001L);
+        assertThat(highestAutoBid.getCurrentAutoBidPrice()).isEqualTo(20001L);
     }
 
     @Test

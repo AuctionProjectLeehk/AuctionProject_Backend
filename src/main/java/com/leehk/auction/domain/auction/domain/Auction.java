@@ -52,9 +52,22 @@ public class Auction {
      * @throws CustomException 경매가 종료되었거나 입찰가가 너무 낮은 경우와 같은 유효하지 않은 입찰일 때
      */
     public Bid placeBid(Long bidderId, long bidPrice) {
-        validateBid(bidPrice);
-        this.currentPrice = bidPrice;
+        // 소유자인지 확인
+        if (bidderId.equals(owner.getId())) {
+            throw new CustomException(ErrorCode.OWNER_CANNOT_BID);
+        }
+        
+        // 경매 진행중 확인
+        if (status != AuctionStatus.ONGOING) {
+            throw new CustomException(ErrorCode.AUCTION_ALREADY_ENDED);
+        }
 
+        // 입찰가 검증
+        if (bidPrice <= currentPrice) {
+            throw new CustomException(ErrorCode.BID_TOO_LOW);
+        }
+
+        this.currentPrice = bidPrice;
         Bid bid = Bid.create(bidderId, this.id, bidPrice);
 
         bids.add(bid);
@@ -87,25 +100,6 @@ public class Auction {
                 .mapToLong(Bid::getBidPrice)
                 .max()
                 .orElse(startPrice);
-    }
-
-    /**
-     * 입찰가가 경매 조건을 충족하는지 검증합니다.
-     * 경매가 더 이상 진행 중이 아니거나 입찰가가 현재 경매가를 초과하지 않으면 예외를 발생시킵니다.
-     *
-     * @param bidPrice 검증할 입찰가
-     * @throws CustomException 경매가 진행 중이 아니거나 입찰가가 너무 낮은 경우
-     */
-    public void validateBid(long bidPrice) {
-        // 경매 진행중 확인
-        if (status != AuctionStatus.ONGOING) {
-            throw new CustomException(ErrorCode.AUCTION_ALREADY_ENDED);
-        }
-
-        // 입찰가 검증
-        if (bidPrice <= currentPrice) {
-            throw new CustomException(ErrorCode.BID_TOO_LOW);
-        }
     }
 
     /**
@@ -192,15 +186,27 @@ public class Auction {
     }
 
     /**
-     * 자동 입찰을 등록하거나 업데이트합니다.
-     * 해당 사용자의 자동 입찰이 이미 존재하면 최대 입찰가를 업데이트하고,
-     * 존재하지 않으면 새로운 자동 입찰을 생성하여 목록에 추가합니다.
+     * 진행 중인 경매에서 사용자를 위한 자동 입찰을 등록하거나 업데이트합니다.
+     * 해당 사용자의 자동 입찰이 이미 등록되어 있다면 최대 자동 입찰가가 업데이트되고,
+     * 그렇지 않은 경우 새로운 자동 입찰이 생성됩니다.
      *
-     * @param userId          자동 입찰을 등록할 사용자 ID
-     * @param maxAutoBidPrice 자동 입찰 최대 금액
-     * @return 생성되거나 업데이트된 자동 입찰 객체
+     * @param userId          자동 입찰을 등록하는 사용자의 ID
+     * @param maxAutoBidPrice 사용자가 자동으로 입찰할 최대 가격
+     * @return 등록되거나 업데이트된 AutoBid 인스턴스
+     * @throws CustomException 경매가 진행 중이 아니거나 입력된 최대 자동 입찰가가 현재 경매가보다
+     *                         낮거나 같은 경우 발생
      */
     public AutoBid registerAutoBid(Long userId, long maxAutoBidPrice) {
+        // 소유자인지 확인
+        if (userId.equals(owner.getId())) {
+            throw new CustomException(ErrorCode.OWNER_CANNOT_BID);
+        }
+
+        // 경매 진행중 확인
+        if (status != AuctionStatus.ONGOING) {
+            throw new CustomException(ErrorCode.AUCTION_ALREADY_ENDED);
+        }
+
         // 설정한 최대가가 해당 경매의 현재가 이하인 경우 에러처리
         if (maxAutoBidPrice <= this.currentPrice) {
             throw new CustomException(ErrorCode.INVALID_AUTO_BID_CREATE);
@@ -225,17 +231,19 @@ public class Auction {
     }
 
     /**
-     * 경매에 대한 자동 입찰 프로세스를 실행합니다.
-     * 이 메서드는 최대 입찰가 기준 내림차순으로 모든 활성화된 자동 입찰을 처리하며,
-     * 최소 입찰 단위를 준수하면서 가장 높은 유효한 입찰이 이루어지도록 합니다.
-     * 이 과정에서 이루어진 모든 입찰은 경매의 현재 가격을 업데이트하고 새로운 Bid 객체를 생성합니다.
-     * 여러 개의 자동 입찰이 활성화되어 있는 경우, 다음 입찰가는 두 번째로 높은 최대 입찰가에
-     * 최소 입찰 단위를 조정하여 결정되며, 이를 통해 경쟁적인 입찰을 보장합니다.
-     * 자동 입찰은 프로세스 결과에 따라 비활성화되거나 현재 입찰가가 적절히 조정됩니다.
+     * 진행 중인 경매의 자동 입찰 프로세스를 실행합니다. 활성화된 자동 입찰을 평가하고,
+     * 최고 및 두 번째로 높은 자동 입찰 최대가를 기준으로 다음 입찰가를 결정하며,
+     * 낙찰된 입찰을 입찰 목록에 추가합니다. 입찰이 이루어질 때마다 경매의 현재가가
+     * 업데이트됩니다. 더 이상 유효한 자동 입찰을 처리할 수 없을 때까지 계속됩니다.
      *
-     * @return 경매의 자동 입찰 프로세스 중 생성된 새로운 Bid 객체들의 목록
+     * @return 자동 입찰 프로세스 중에 새로 생성된 입찰 목록
+     * @throws CustomException 경매가 진행 중이 아닌 경우 발생
      */
     public List<Bid> executeAutoBids() {
+        if (status != AuctionStatus.ONGOING) {
+            throw new CustomException(ErrorCode.AUCTION_ALREADY_ENDED);
+        }
+
         int minGap = 1; // 최소 입찰 단위
         List<Bid> newBids = new ArrayList<>();
 
@@ -280,30 +288,40 @@ public class Auction {
     }
 
     /**
-     * 특정 사용자의 자동 입찰 기능을 비활성화합니다.
-     * 해당 사용자의 활성화된 자동 입찰이 있다면 비활성화 됩니다.
+     * 주어진 사용자 ID에 연결된 자동 입찰을 비활성화합니다.
+     * 해당 사용자의 활성화된 자동 입찰을 찾아 비활성화하고
+     * 자동 입찰 목록을 갱신합니다. 해당 사용자의 활성화된 자동 입찰을 찾지 못하면
+     * CustomException이 발생합니다.
      *
      * @param userId 자동 입찰을 비활성화할 사용자의 고유 식별자
      */
     public void deactivateAutoBidByUserId(Long userId) {
-        autoBids = autoBids.stream()
-                .map(ab -> ab.getAutoBidderId().equals(userId) && ab.isActive()
-                        ? ab.deactivate()
-                        : ab)
-                .collect(Collectors.toCollection(ArrayList::new));
+        AutoBid deactivatedAutoBid = autoBids.stream()
+                .filter(ab -> ab.getAutoBidderId().equals(userId) && ab.isActive())
+                .findFirst()
+                .orElseThrow(() -> new CustomException(ErrorCode.AUTO_BID_NOT_FOUND))
+                .deactivate();
+
+        autoBids.removeIf(ab -> ab.getId().equals(deactivatedAutoBid.getId()));
+        autoBids.add(deactivatedAutoBid);
     }
 
     /**
-     * 특정 자동 입찰을 고유 식별자로 찾아 비활성화합니다.
-     * 자동 입찰이 활성화되어 있고 제공된 식별자와 일치하는 경우 비활성화됩니다.
+     * 주어진 자동 입찰 ID로 식별되는 자동 입찰을 비활성화합니다.
+     * 해당 ID를 가진 활성화된 자동 입찰이 존재하면 비활성화하고
+     * 자동 입찰 목록을 갱신합니다. 활성화된 자동 입찰을 찾지 못하면
+     * CustomException이 발생합니다.
      *
      * @param autoBidId 비활성화할 자동 입찰의 고유 식별자
      */
     public void deactivateAutoBidByAutoBidId(UUID autoBidId) {
-        autoBids = autoBids.stream()
-                .map(ab -> ab.getId().equals(autoBidId) && ab.isActive()
-                        ? ab.deactivate()
-                        : ab)
-                .collect(Collectors.toCollection(ArrayList::new));
+        AutoBid deactivatedAutoBid = autoBids.stream()
+                .filter(ab -> ab.getId().equals(autoBidId) && ab.isActive())
+                .findFirst()
+                .orElseThrow(() -> new CustomException(ErrorCode.AUTO_BID_NOT_FOUND))
+                .deactivate();
+
+        autoBids.removeIf(ab -> ab.getId().equals(deactivatedAutoBid.getId()));
+        autoBids.add(deactivatedAutoBid);
     }
 }

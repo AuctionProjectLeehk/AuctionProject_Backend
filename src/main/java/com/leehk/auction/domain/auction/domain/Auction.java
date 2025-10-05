@@ -247,42 +247,40 @@ public class Auction {
         int minGap = 1; // 최소 입찰 단위
         List<Bid> newBids = new ArrayList<>();
 
-        while (true) {
-            // 활성화된 자동 입찰을 최대 입찰가 기준 내림차순, 업데이트 순서 기준 정렬
-            List<AutoBid> activeAutoBids = autoBids.stream()
-                    .filter(AutoBid::isActive)
-                    .sorted(Comparator
-                            .comparingLong(AutoBid::getMaxAutoBidPrice).reversed()
-                            .thenComparing(AutoBid::getUpdatedAt)
-                    )
-                    .toList();
+        // 활성화된 자동 입찰을 최대 입찰가 기준 내림차순, 업데이트 순서 기준 정렬
+        List<AutoBid> activeAutoBids = autoBids.stream()
+                .filter(AutoBid::isActive)
+                .sorted(Comparator
+                        .comparingLong(AutoBid::getMaxAutoBidPrice).reversed()
+                        .thenComparing(AutoBid::getUpdatedAt)
+                )
+                .toList();
 
-            // 활성화된 자동 입찰이 없으면 종료
-            if (activeAutoBids.isEmpty()) break;
+        // 활성화된 자동 입찰이 없으면 종료
+        if (activeAutoBids.isEmpty()) return newBids;
 
-            AutoBid topAutoBid = activeAutoBids.get(0);
-            long nextBidPrice = this.currentPrice + minGap;
+        AutoBid topAutoBid = activeAutoBids.get(0);
+        long nextBidPrice = this.currentPrice + minGap;
 
-            // 활성화된 자동 입찰의 최대가가 현재가보다 높지 않으면 종료
-            if (topAutoBid.getMaxAutoBidPrice() < nextBidPrice) break;
+        // 활성화된 자동 입찰의 최대가가 현재가보다 높지 않으면 종료
+        if (topAutoBid.getMaxAutoBidPrice() < nextBidPrice) return newBids;
 
-            // 설정된 자동 입찰이 하나 초과인 경우 두번째 최대 입찰가 + gap 가격으로 입찰가 설정
-            if (activeAutoBids.size() > 1) {
-                long secondMaxBidPrice = activeAutoBids.get(1).getMaxAutoBidPrice();
-                nextBidPrice = Math.max(nextBidPrice, secondMaxBidPrice + 1);
-            }
-
-            Bid bid = Bid.create(topAutoBid.getAutoBidderId(), this.id, nextBidPrice);
-            bids.add(bid);
-            this.currentPrice = nextBidPrice;
-            newBids.add(bid);
-
-            autoBids.remove(topAutoBid);  // top 삭제
-            autoBids = autoBids.stream()  // 나머지 비활성화
-                    .map(AutoBid::deactivate)
-                    .collect(Collectors.toCollection(ArrayList::new));
-            autoBids.add(topAutoBid.updateCurrentAutoBidPrice(nextBidPrice));  // top 현재가만 수정해서 다시 넣기
+        // 설정된 자동 입찰이 하나 초과인 경우 두번째 최대 입찰가 + gap 가격으로 입찰가 설정
+        if (activeAutoBids.size() > 1) {
+            long secondMaxBidPrice = activeAutoBids.get(1).getMaxAutoBidPrice();
+            nextBidPrice = Math.max(nextBidPrice, secondMaxBidPrice + 1);
         }
+
+        Bid bid = Bid.create(topAutoBid.getAutoBidderId(), this.id, nextBidPrice);
+        bids.add(bid);
+        this.currentPrice = nextBidPrice;
+        newBids.add(bid);
+
+        autoBids.remove(topAutoBid);  // top 삭제
+        autoBids = autoBids.stream()  // 나머지 비활성화
+                .map(AutoBid::deactivate)
+                .collect(Collectors.toCollection(ArrayList::new));
+        autoBids.add(topAutoBid.updateCurrentAutoBidPrice(nextBidPrice));  // top 현재가만 수정해서 다시 넣기
 
         return newBids;
     }

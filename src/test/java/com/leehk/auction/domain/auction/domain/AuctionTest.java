@@ -25,6 +25,7 @@ class AuctionTest {
     void setup() {
         testAuction = Auction.builder()
                 .id(new Random().nextLong())
+                .owner(User.builder().id(100000L).build())
                 .title("test 경매")
                 .description("test 설명")
                 .startPrice(1000L)
@@ -77,6 +78,18 @@ class AuctionTest {
         assertThat(auction.getBids().size()).isEqualTo(4);  // 4개 입찰
         assertThat(auction.getBids().stream().map(Bid::getBidderId).distinct().count()).isEqualTo(3);  // 3명 입찰
         assertThat(auction.getHighestBidderId()).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("실패 - 소유주가 입찰 시 예외 발생")
+    void placeBid_Fail_OwnerBid() {
+        // given
+        Auction auction = testAuction;
+
+        // when and then
+        assertThatThrownBy(() -> auction.placeBid(auction.getOwner().getId(), 11000L))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.OWNER_CANNOT_BID.getMessage());
     }
 
     @Test
@@ -211,6 +224,18 @@ class AuctionTest {
         assertThat(auction.getAutoBids()).contains(updatedAutoBid);
         assertThat(auction.getAutoBids()).contains(autoBid2);
     }
+    
+    @Test
+    @DisplayName("Auction에 자동 입찰 등록 실패 - 소유주가 등록 시도")
+    void registerAutoBid_Fail_OwnerRegister() {
+        // given
+        Auction auction = testAuction;
+
+        // when and then
+        assertThatThrownBy(() -> auction.registerAutoBid(auction.getOwner().getId(), 20000L))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.OWNER_CANNOT_BID.getMessage());
+    }
 
     @Test
     @DisplayName("Auction에 자동 입찰 등록 실패 - 현재가보다 최대 입찰가 설정 에러")
@@ -323,6 +348,21 @@ class AuctionTest {
     }
 
     @Test
+    @DisplayName("유저 Id로 자동 입찰 비활성화 실패 - 해당 유저 Id의 자동 입찰이 없는 경우")
+    void deactivateAutoBid_shouldThrowExceptionWhenUserIdNotFound() {
+        // given
+        Auction auction = testAuction;
+        auction.registerAutoBid(2L, 20000L);
+        auction.registerAutoBid(3L, 25000L);
+        auction.registerAutoBid(4L, 30000L);
+
+        // when and then
+        assertThatThrownBy(() -> auction.deactivateAutoBidByUserId(-1L))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.AUTO_BID_NOT_FOUND.getMessage());
+    }
+
+    @Test
     @DisplayName("자동 입찰 Id로 자동 입찰 비활성화 성공")
     void deactivateAutoBid_shouldDeactivateExistingAutoBidByAutoBidId() {
         // given
@@ -341,5 +381,20 @@ class AuctionTest {
                 .orElseThrow(() -> new CustomException(ErrorCode.AUTO_BID_NOT_FOUND));
 
         assertThat(deactivatedAutoBid.isActive()).isFalse();
+    }
+
+    @Test
+    @DisplayName("자동 입찰 Id로 자동 입찰 비활성화 실패 - 해당 자동 입찰 Id가 없는 경우")
+    void deactivateAutoBid_shouldThrowExceptionWhenAutoBidIdNotFound() {
+        // given
+        Auction auction = testAuction;
+        auction.registerAutoBid(2L, 20000L);
+        auction.registerAutoBid(3L, 25000L);
+        auction.registerAutoBid(4L, 30000L);
+
+        // when and then
+        assertThatThrownBy(() -> auction.deactivateAutoBidByAutoBidId(UUID.randomUUID()))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.AUTO_BID_NOT_FOUND.getMessage());
     }
 }

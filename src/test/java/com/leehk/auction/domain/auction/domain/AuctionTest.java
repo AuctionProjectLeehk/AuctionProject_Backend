@@ -234,7 +234,7 @@ class AuctionTest {
         // when and then
         assertThatThrownBy(() -> auction.registerAutoBid(auction.getOwner().getId(), 20000L))
                 .isInstanceOf(CustomException.class)
-                .hasMessage(ErrorCode.OWNER_CANNOT_BID.getMessage());
+                .hasMessage(ErrorCode.OWNER_CANNOT_AUTO_BID.getMessage());
     }
 
     @Test

@@ -199,7 +199,7 @@ public class Auction {
     public AutoBid registerAutoBid(Long userId, long maxAutoBidPrice) {
         // 소유자인지 확인
         if (userId.equals(owner.getId())) {
-            throw new CustomException(ErrorCode.OWNER_CANNOT_BID);
+            throw new CustomException(ErrorCode.OWNER_CANNOT_AUTO_BID);
         }
 
         // 경매 진행중 확인

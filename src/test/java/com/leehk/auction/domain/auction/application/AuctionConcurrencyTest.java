@@ -35,7 +35,7 @@ public class AuctionConcurrencyTest extends BaseH2Test {
     @BeforeEach
     void setup() {
         auctionUsers = new ArrayList<>();
-        for (int i = 0; i < threadCount; i++) {
+        for (int i = 0; i < threadCount+1; i++) {
             User testUser = User.builder()
                     .email("test" + UUID.randomUUID() + "@example.com")
                     .name("test" + i)
@@ -55,7 +55,7 @@ public class AuctionConcurrencyTest extends BaseH2Test {
                 .endTime(java.time.LocalDateTime.now().plusDays(1))
                 .status(com.leehk.auction.domain.auction.enums.AuctionStatus.ONGOING)
                 .build();
-        auction = auctionService.createAuction(auction, auctionUsers.get(0).getId());
+        auction = auctionService.createAuction(auction, auctionUsers.get(threadCount).getId());  // 마지막 사용자가 경매 생성
     }
 
     /**
@@ -89,7 +89,7 @@ public class AuctionConcurrencyTest extends BaseH2Test {
         // then: 최종 경매 상태 확인
         Auction updatedAuction = auctionService.getAuction(auction.getId());
         assertThat(updatedAuction.getCurrentPrice()).isEqualTo(1000L + threadCount * 100L); // 가장 높은 입찰가 확인
-        assertThat(updatedAuction.getHighestBidderId()).isEqualTo(auctionUsers.get(auctionUsers.size()-1).getId()); // 가장 높은 입찰자 확인
+        assertThat(updatedAuction.getHighestBidderId()).isEqualTo(auctionUsers.get(threadCount-1).getId()); // 가장 높은 입찰자 확인
     }
 
     /**
@@ -206,6 +206,6 @@ public class AuctionConcurrencyTest extends BaseH2Test {
         // then: 최고 입찰자와 가격 확인
         Auction updatedAuction = auctionService.getAuction(auction.getId());
         assertThat(updatedAuction.getCurrentPrice()).isEqualTo(1000L + threadCount * 100L); // 가장 높은 입찰가 확인
-        assertThat(updatedAuction.getHighestBidderId()).isEqualTo(auctionUsers.get(auctionUsers.size()-1).getId()); // 가장 높은 입찰자 확인
+        assertThat(updatedAuction.getHighestBidderId()).isEqualTo(auctionUsers.get(threadCount-1).getId()); // 가장 높은 입찰자 확인
     }
 }

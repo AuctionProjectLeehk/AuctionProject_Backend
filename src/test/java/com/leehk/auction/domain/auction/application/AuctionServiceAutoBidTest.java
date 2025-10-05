@@ -35,7 +35,6 @@ class AuctionServiceAutoBidTest extends BaseH2Test {
 
         testAuction = Auction.builder()
                 .title("test 경매")
-                .owner(testUser)
                 .description("test 설명")
                 .startPrice(1000L)
                 .currentPrice(10000L)
@@ -58,11 +57,13 @@ class AuctionServiceAutoBidTest extends BaseH2Test {
     @DisplayName("자동 입찰 등록 성공")
     void registerAutoBid_Success() {
         // given
-        User savedUser = userService.saveUser(testUser);
-        Auction createdAuction = auctionService.createAuction(testAuction, savedUser.getId());
+        User savedOwnerUser = userService.saveUser(testUser);
+        User savedAutoBidderUser = userService.saveUser(makeUser(2L));
+
+        Auction createdAuction = auctionService.createAuction(testAuction, savedOwnerUser.getId());
 
         // when
-        auctionService.registerAutoBid(createdAuction.getId(), savedUser.getId(), 15000L);
+        auctionService.registerAutoBid(createdAuction.getId(), savedAutoBidderUser.getId(), 15000L);
 
         // then
         Auction updatedAuction = auctionService.getAuction(createdAuction.getId());
@@ -73,12 +74,12 @@ class AuctionServiceAutoBidTest extends BaseH2Test {
     @DisplayName("자동 입찰 등록 실패 - 경매 없음")
     void registerAutoBid_Fail_NotFoundAuction() {
         // given
-        User savedUser = userService.saveUser(testUser);
-        Auction createdAuction = auctionService.createAuction(testAuction, savedUser.getId());
+        User savedOwnerUser = userService.saveUser(testUser);
+        Auction createdAuction = auctionService.createAuction(testAuction, savedOwnerUser.getId());
 
         // when and then
         Long nonExistentAuctionId = -1L;
-        assertThatThrownBy(() -> auctionService.registerAutoBid(nonExistentAuctionId, savedUser.getId(), 15000L))
+        assertThatThrownBy(() -> auctionService.registerAutoBid(nonExistentAuctionId, savedOwnerUser.getId(), 15000L))
                 .isInstanceOf(Exception.class)
                 .hasMessageContaining(ErrorCode.AUCTION_NOT_FOUND.getMessage());
     }
@@ -87,8 +88,8 @@ class AuctionServiceAutoBidTest extends BaseH2Test {
     @DisplayName("자동 입찰 등록 실패 - 사용자 없음")
     void registerAutoBid_Fail_NotFoundUser() {
         // given
-        User savedUser = userService.saveUser(testUser);
-        Auction createdAuction = auctionService.createAuction(testAuction, savedUser.getId());
+        User savedOwnerUser = userService.saveUser(testUser);
+        Auction createdAuction = auctionService.createAuction(testAuction, savedOwnerUser.getId());
 
         // when and then
         Long nonExistentUserId = -1L;
@@ -101,11 +102,13 @@ class AuctionServiceAutoBidTest extends BaseH2Test {
     @DisplayName("자동 입찰 등록 실패 - 입찰가가 현재가 이하")
     void registerAutoBid_Fail_BidTooLow() {
         // given
-        User savedUser = userService.saveUser(testUser);
-        Auction createdAuction = auctionService.createAuction(testAuction, savedUser.getId());
+        User savedOwnerUser = userService.saveUser(testUser);
+        User savedAutoBidderUser = userService.saveUser(makeUser(2L));
+
+        Auction createdAuction = auctionService.createAuction(testAuction, savedOwnerUser.getId());
 
         // when and then
-        assertThatThrownBy(() -> auctionService.registerAutoBid(createdAuction.getId(), savedUser.getId(), 9000L))
+        assertThatThrownBy(() -> auctionService.registerAutoBid(createdAuction.getId(), savedAutoBidderUser.getId(), 9000L))
                 .isInstanceOf(Exception.class)
                 .hasMessageContaining(ErrorCode.INVALID_AUTO_BID_CREATE.getMessage());
     }

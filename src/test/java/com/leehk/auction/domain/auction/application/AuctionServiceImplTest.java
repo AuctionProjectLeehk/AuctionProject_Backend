@@ -36,6 +36,8 @@ class AuctionServiceImplTest extends BaseH2Test {
 
     @BeforeEach
     void setup() {
+        testUser = makeUser(1L);
+
         testAuction = Auction.builder()
                 .title("test 경매")
                 .description("test 설명")
@@ -45,12 +47,14 @@ class AuctionServiceImplTest extends BaseH2Test {
                 .endTime(LocalDateTime.now().plusDays(1))
                 .status(AuctionStatus.ONGOING)
                 .build();
+    }
 
-        testUser = User.builder()
-                .email("<EMAIL>")
-                .name("test")
-                .password("<PASSWORD>")
-                .nickname("test")
+    private User makeUser(long index) {
+        return User.builder()
+                .email("test" + index + "@example.com")
+                .name("test" + index)
+                .password("password")
+                .nickname("test" + index)
                 .build();
     }
 
@@ -58,11 +62,11 @@ class AuctionServiceImplTest extends BaseH2Test {
     @DisplayName("경매 생성 후 조회 성공")
     void createAndGetAuction() {
         // given
-        User savedUser = userService.saveUser(testUser);
+        User savedOwnerUser = userService.saveUser(testUser);
 
-        System.out.println("savedUser = " + savedUser.getId() + ", " + savedUser.getNickname());
+        System.out.println("savedOwnerUser = " + savedOwnerUser.getId() + ", " + savedOwnerUser.getNickname());
 
-        Auction createdAuction = auctionService.createAuction(testAuction, savedUser.getId());
+        Auction createdAuction = auctionService.createAuction(testAuction, savedOwnerUser.getId());
 
         // when
         Auction foundAuction = auctionService.getAuction(createdAuction.getId());
@@ -76,11 +80,13 @@ class AuctionServiceImplTest extends BaseH2Test {
     @DisplayName("입찰 성공 시 가격이 갱신")
     void placeBid_Success() {
         // given
-        User savedUser = userService.saveUser(testUser);
-        Auction createdAuction = auctionService.createAuction(testAuction, savedUser.getId());
+        User savedOwnerUser = userService.saveUser(testUser);
+        User savedBidderUser = userService.saveUser(makeUser(2L));
+
+        Auction createdAuction = auctionService.createAuction(testAuction, savedOwnerUser.getId());
 
         // when
-        Auction updatedAuction = auctionService.placeBid(createdAuction.getId(), savedUser.getId(), 11000L);
+        Auction updatedAuction = auctionService.placeBid(createdAuction.getId(), savedBidderUser.getId(), 11000L);
 
         // then
         assertThat(updatedAuction.getCurrentPrice()).isEqualTo(11000L);
@@ -90,14 +96,17 @@ class AuctionServiceImplTest extends BaseH2Test {
     @DisplayName("여러 번 입찰 시 가격이 순차적으로 갱신")
     void multipleBids_Success() {
         // given
-        User savedUser = userService.saveUser(testUser);
-        Auction createdAuction = auctionService.createAuction(testAuction, savedUser.getId());
+        User savedOwnerUser = userService.saveUser(testUser);
+        User savedBidderUser1 = userService.saveUser(makeUser(2L));
+        User savedBidderUser2 = userService.saveUser(makeUser(3L));
+
+        Auction createdAuction = auctionService.createAuction(testAuction, savedOwnerUser.getId());
 
         // when
-        auctionService.placeBid(createdAuction.getId(), savedUser.getId(), 11000L);
+        auctionService.placeBid(createdAuction.getId(), savedBidderUser1.getId(), 11000L);
         Auction afterFirstBid = auctionService.getAuction(createdAuction.getId());
 
-        auctionService.placeBid(createdAuction.getId(), savedUser.getId(), 12000L);
+        auctionService.placeBid(createdAuction.getId(), savedBidderUser2.getId(), 12000L);
         Auction afterSecondBid = auctionService.getAuction(createdAuction.getId());
 
         // then
@@ -109,8 +118,8 @@ class AuctionServiceImplTest extends BaseH2Test {
     @DisplayName("경매 종료 성공")
     void endAuctionSuccess() {
         // given
-        User savedUser = userService.saveUser(testUser);
-        Auction createdAuction = auctionService.createAuction(testAuction, savedUser.getId());
+        User savedOwnerUser = userService.saveUser(testUser);
+        Auction createdAuction = auctionService.createAuction(testAuction, savedOwnerUser.getId());
 
         // when
         Auction ended = auctionService.endAuction(createdAuction.getId());
@@ -135,12 +144,14 @@ class AuctionServiceImplTest extends BaseH2Test {
     @DisplayName("종료된 경매에 입찰 시 예외 발생")
     void placeBid_OnEndedAuction() {
         // given
-        User savedUser = userService.saveUser(testUser);
-        Auction createdAuction = auctionService.createAuction(testAuction, savedUser.getId());
+        User savedOwnerUser = userService.saveUser(testUser);
+        User savedBidderUser = userService.saveUser(makeUser(2L));
+
+        Auction createdAuction = auctionService.createAuction(testAuction, savedOwnerUser.getId());
         auctionService.endAuction(createdAuction.getId());
 
         // when and then
-        assertThatThrownBy(() -> auctionService.placeBid(createdAuction.getId(), savedUser.getId(),11000L))
+        assertThatThrownBy(() -> auctionService.placeBid(createdAuction.getId(), savedBidderUser.getId(),11000L))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.AUCTION_ALREADY_ENDED.getMessage());
     }
@@ -149,11 +160,13 @@ class AuctionServiceImplTest extends BaseH2Test {
     @DisplayName("현재 가격보다 낮은 가격으로 입찰")
     void placeBid_LowerThanCurrent() {
         // given
-        User savedUser = userService.saveUser(testUser);
-        Auction createdAuction = auctionService.createAuction(testAuction, savedUser.getId());
+        User savedOwnerUser = userService.saveUser(testUser);
+        User savedBidderUser = userService.saveUser(makeUser(2L));
+
+        Auction createdAuction = auctionService.createAuction(testAuction, savedOwnerUser.getId());
 
         // when and then
-        assertThatThrownBy(() -> auctionService.placeBid(createdAuction.getId(), savedUser.getId(),9000L))
+        assertThatThrownBy(() -> auctionService.placeBid(createdAuction.getId(), savedBidderUser.getId(),9000L))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.BID_TOO_LOW.getMessage());
     }
@@ -162,18 +175,22 @@ class AuctionServiceImplTest extends BaseH2Test {
     @DisplayName("입찰 취소 테스트")
     void cancelBid_Success() {
         // given
-        User savedUser = userService.saveUser(testUser);
-        Auction createdAuction = auctionService.createAuction(testAuction, savedUser.getId());
+        User savedOwnerUser = userService.saveUser(testUser);
+        User savedBidderUser1 = userService.saveUser(makeUser(2L));
+        User savedBidderUser2 = userService.saveUser(makeUser(3L));
+        User savedBidderUser3 = userService.saveUser(makeUser(4L));
 
-        auctionService.placeBid(createdAuction.getId(), savedUser.getId(), 11000L);
-        auctionService.placeBid(createdAuction.getId(), savedUser.getId(), 12000L);
-        auctionService.placeBid(createdAuction.getId(), savedUser.getId(), 13000L);
+        Auction createdAuction = auctionService.createAuction(testAuction, savedOwnerUser.getId());
+
+        auctionService.placeBid(createdAuction.getId(), savedBidderUser1.getId(), 11000L);
+        auctionService.placeBid(createdAuction.getId(), savedBidderUser2.getId(), 12000L);
+        auctionService.placeBid(createdAuction.getId(), savedBidderUser3.getId(), 13000L);
 
         Auction auction = auctionService.getAuction(createdAuction.getId());
         Bid highesetBid = auction.getHighestBid();
 
         // then
-        auctionService.cancelBid(createdAuction.getId(), highesetBid.getId(), savedUser.getId());
+        auctionService.cancelBid(createdAuction.getId(), highesetBid.getId(), savedBidderUser3.getId());
         Auction updatedAuction = auctionService.getAuction(createdAuction.getId());
 
         // then
@@ -185,11 +202,11 @@ class AuctionServiceImplTest extends BaseH2Test {
     @DisplayName("경매 삭제 후 조회 예외 발생")
     void deleteAuction_ThenGetFail() {
         // given
-        User savedUser = userService.saveUser(testUser);
-        Auction createdAuction = auctionService.createAuction(testAuction, savedUser.getId());
+        User savedOwnerUser = userService.saveUser(testUser);
+        Auction createdAuction = auctionService.createAuction(testAuction, savedOwnerUser.getId());
 
         // when
-        auctionService.deleteAuction(createdAuction.getId(), savedUser.getId());
+        auctionService.deleteAuction(createdAuction.getId(), savedOwnerUser.getId());
 
         // then
         assertThatThrownBy(() -> auctionService.getAuction(createdAuction.getId()))

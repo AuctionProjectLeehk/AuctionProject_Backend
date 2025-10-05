@@ -50,6 +50,8 @@ class BidServiceImplTest extends BaseH2Test {
 
     @BeforeEach
     void setup() {
+        testUser = makeUser(1L);
+        
         testAuction = Auction.builder()
                 .title("test 경매")
                 .description("test 설명")
@@ -59,12 +61,14 @@ class BidServiceImplTest extends BaseH2Test {
                 .endTime(LocalDateTime.now().plusDays(1))
                 .status(AuctionStatus.ONGOING)
                 .build();
+    }
 
-        testUser = User.builder()
-                .email("<EMAIL>")
-                .name("test")
-                .password("<PASSWORD>")
-                .nickname("test")
+    private User makeUser(long index) {
+        return User.builder()
+                .email("test" + index + "@example.com")
+                .name("test" + index)
+                .password("password")
+                .nickname("test" + index)
                 .build();
     }
 
@@ -72,16 +76,18 @@ class BidServiceImplTest extends BaseH2Test {
     @DisplayName("입찰 성공 - 현재가보다 높은 금액으로 입찰")
     void placeBid_success() {
         // given
-        User savedUser = userService.saveUser(testUser);
-        Auction createdAuction = auctionService.createAuction(testAuction, savedUser.getId());
+        User savedOwnerUser = userService.saveUser(testUser);
+        User savedBidderUser = userService.saveUser(makeUser(2L));
+        
+        Auction createdAuction = auctionService.createAuction(testAuction, savedOwnerUser.getId());
 
         // when
-        Bid bid = bidService.placeBid(createdAuction.getId(), savedUser.getId(), 11000L);
+        Bid bid = bidService.placeBid(createdAuction.getId(), savedBidderUser.getId(), 11000L);
         Auction updatedAuction = auctionService.getAuction(createdAuction.getId());
 
         // then
         assertThat(bid.getBidPrice()).isEqualTo(11000L);
-        assertThat(bid.getBidderId()).isEqualTo(savedUser.getId());
+        assertThat(bid.getBidderId()).isEqualTo(savedBidderUser.getId());
 
         assertThat(updatedAuction.getCurrentPrice()).isEqualTo(11000L);
     }
@@ -89,39 +95,19 @@ class BidServiceImplTest extends BaseH2Test {
     @Test
     void getBidByAuctionId_Success() {
         // given
-        User savedUser = userService.saveUser(testUser);
-        Auction createdAuction = auctionService.createAuction(testAuction, savedUser.getId());
+        User savedOwnerUser = userService.saveUser(testUser);
+        User savedBidderUser1 = userService.saveUser(makeUser(2L));
+        User savedBidderUser2 = userService.saveUser(makeUser(3L));
+        User savedBidderUser3 = userService.saveUser(makeUser(4L));
 
-        User user1 = User.builder()
-                .email("<EMAIL1>")
-                .name("test")
-                .password("<PASSWORD>")
-                .nickname("test1")
-                .build();
-        User savedUser1 = userService.saveUser(user1);
-
-        User user2 = User.builder()
-                .email("<EMAIL2>")
-                .name("test")
-                .password("<PASSWORD>")
-                .nickname("test2")
-                .build();
-        User savedUser2 = userService.saveUser(user2);
-
-        User user3 = User.builder()
-                .email("<EMAIL3>")
-                .name("test")
-                .password("<PASSWORD>")
-                .nickname("test3")
-                .build();
-        User savedUser3 = userService.saveUser(user3);
+        Auction createdAuction = auctionService.createAuction(testAuction, savedOwnerUser.getId());
 
 
         // when
-        bidService.placeBid(createdAuction.getId(), savedUser1.getId(), 11000L);
-        bidService.placeBid(createdAuction.getId(), savedUser2.getId(), 12000L);
-        bidService.placeBid(createdAuction.getId(), savedUser1.getId(), 13000L);
-        bidService.placeBid(createdAuction.getId(), savedUser3.getId(), 14000L);
+        bidService.placeBid(createdAuction.getId(), savedBidderUser1.getId(), 11000L);
+        bidService.placeBid(createdAuction.getId(), savedBidderUser2.getId(), 12000L);
+        bidService.placeBid(createdAuction.getId(), savedBidderUser3.getId(), 13000L);
+        bidService.placeBid(createdAuction.getId(), savedBidderUser2.getId(), 14000L);
 
         List<Bid> bidList = bidService.getBidByAuctionId(createdAuction.getId());
         Auction updatedAuction = auctionService.getAuction(createdAuction.getId());
@@ -135,13 +121,15 @@ class BidServiceImplTest extends BaseH2Test {
     @DisplayName("동일 사용자가 여러번 입찰 - 가장 높은 입찰만 확인")
     void placeMultipleBids_sameUser() {
         // given
-        User savedUser = userService.saveUser(testUser);
-        Auction createdAuction = auctionService.createAuction(testAuction, savedUser.getId());
+        User savedOwnerUser = userService.saveUser(testUser);
+        User savedBidderUser = userService.saveUser(makeUser(2L));
+
+        Auction createdAuction = auctionService.createAuction(testAuction, savedOwnerUser.getId());
 
         // when - 여러번 입찰
-        bidService.placeBid(createdAuction.getId(), savedUser.getId(), 11000L);
-        bidService.placeBid(createdAuction.getId(), savedUser.getId(), 12000L);
-        bidService.placeBid(createdAuction.getId(), savedUser.getId(), 13000L);
+        bidService.placeBid(createdAuction.getId(), savedBidderUser.getId(), 11000L);
+        bidService.placeBid(createdAuction.getId(), savedBidderUser.getId(), 12000L);
+        bidService.placeBid(createdAuction.getId(), savedBidderUser.getId(), 13000L);
 
         List<Bid> bidList = bidService.getBidByAuctionId(createdAuction.getId());
         Auction updatedAuction = auctionService.getAuction(createdAuction.getId());
@@ -149,29 +137,28 @@ class BidServiceImplTest extends BaseH2Test {
         // then
         assertThat(bidList.size()).isEqualTo(3);
         assertThat(updatedAuction.getCurrentPrice()).isEqualTo(13000L);
-        assertThat(updatedAuction.getHighestBidderId()).isEqualTo(savedUser.getId());
+        assertThat(updatedAuction.getHighestBidderId()).isEqualTo(savedBidderUser.getId());
     }
 
     @Test
     @DisplayName("입찰 취소 테스트")
     void cancelBid_Success() {
         // given
-        User savedUser = userService.saveUser(testUser);
-        Auction createdAuction = auctionService.createAuction(testAuction, savedUser.getId());
+        User savedOwnerUser = userService.saveUser(testUser);
+        User savedBidderUser1 = userService.saveUser(makeUser(2L));
+        User savedBidderUser2 = userService.saveUser(makeUser(3L));
 
-        bidService.placeBid(createdAuction.getId(), savedUser.getId(), 11000L);
-        bidService.placeBid(createdAuction.getId(), savedUser.getId(), 12000L);
+        Auction createdAuction = auctionService.createAuction(testAuction, savedOwnerUser.getId());
+
+        bidService.placeBid(createdAuction.getId(), savedBidderUser1.getId(), 11000L);
+        bidService.placeBid(createdAuction.getId(), savedBidderUser2.getId(), 12000L);
         Bid highestBid = bidService.getHighestBid(createdAuction.getId());
 
         // when
-        bidService.cancelBid(highestBid.getId(), savedUser.getId());
+        bidService.cancelBid(highestBid.getId(), savedBidderUser2.getId());
 
         List<Bid> bidList = bidService.getBidByAuctionId(createdAuction.getId());
         Auction updatedAuction = auctionService.getAuction(createdAuction.getId());
-
-        for (Bid bid : bidList) {
-            System.out.println(bid.getBidPrice());
-        }
 
         // then
         assertThat(bidList.size()).isEqualTo(1);

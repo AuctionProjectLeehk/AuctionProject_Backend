@@ -128,4 +128,66 @@ public class AuctionServiceImpl implements AuctionService {
 
         return auction;
     }
+
+    @Override
+    @Transactional
+    public Auction registerAutoBid(Long auctionId, Long userId, long maxAutoBidPrice) {
+        AuctionEntity auctionEntity = auctionRepository.findByIdForUpdate(auctionId)
+                .orElseThrow(() -> new CustomException(ErrorCode.AUCTION_NOT_FOUND));
+
+        if (userService.getUserById(userId) == null)
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+
+        Auction auction = AuctionConverter.entityToDomain(auctionEntity);
+
+        auction.registerAutoBid(userId, maxAutoBidPrice);
+
+        auctionEntity.updateFromDomain(auction);
+
+        auctionRepository.saveAndFlush(auctionEntity);
+
+        return auction;
+    }
+
+    @Override
+    @Transactional
+    public void executeAutoBids(Long auctionId) {
+        AuctionEntity auctionEntity = auctionRepository.findByIdForUpdate(auctionId)
+                .orElseThrow(() -> new CustomException(ErrorCode.AUCTION_NOT_FOUND));
+
+        Auction auction = AuctionConverter.entityToDomain(auctionEntity);
+        auction.executeAutoBids();
+
+        auctionEntity.updateFromDomain(auction);
+        auctionRepository.saveAndFlush(auctionEntity);
+    }
+
+    @Override
+    @Transactional
+    public void deactivateAutoBidByUser(Long auctionId, Long userId) {
+        AuctionEntity entity = auctionRepository.findByIdForUpdate(auctionId)
+                .orElseThrow(() -> new CustomException(ErrorCode.AUCTION_NOT_FOUND));
+
+        if (userService.getUserById(userId) == null)
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+
+        Auction auction = AuctionConverter.entityToDomain(entity);
+        auction.deactivateAutoBidByUserId(userId);
+
+        entity.updateFromDomain(auction);
+        auctionRepository.saveAndFlush(entity);
+    }
+
+    @Override
+    @Transactional
+    public void deactivateAutoBidById(Long auctionId, UUID autoBidId) {
+        AuctionEntity entity = auctionRepository.findByIdForUpdate(auctionId)
+                .orElseThrow(() -> new CustomException(ErrorCode.AUCTION_NOT_FOUND));
+
+        Auction auction = AuctionConverter.entityToDomain(entity);
+        auction.deactivateAutoBidByAutoBidId(autoBidId);
+
+        entity.updateFromDomain(auction);
+        auctionRepository.saveAndFlush(entity);
+    }
 }

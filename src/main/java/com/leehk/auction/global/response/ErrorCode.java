@@ -19,11 +19,13 @@ public enum ErrorCode {
     BAD_REQUEST(40100, HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
 
     // 401 Unauthorized
-    TOKEN_EXPIRED(40201, HttpStatus.UNAUTHORIZED, "토큰이 만료되었습니다."),
-    INVALID_TOKEN(40202, HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다"),
-    UNAUTHORIZED_BID_ACTION(40203, HttpStatus.UNAUTHORIZED, "유효하지 않은 입찰에 접근하였습니다."),
-    UNAUTHORIZED_AUCTION_ACTION(40204, HttpStatus.UNAUTHORIZED, "유효하지 않은 경매에 접근하였습니다."),
-    UNAUTHORIZED(40200, HttpStatus.UNAUTHORIZED, "인증이 필요합니다."),
+    TOKEN_EXPIRED(40101, HttpStatus.UNAUTHORIZED, "토큰이 만료되었습니다."),
+    INVALID_TOKEN(40102, HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다"),
+    UNAUTHORIZED_BID_ACTION(40103, HttpStatus.UNAUTHORIZED, "유효하지 않은 입찰에 접근하였습니다."),
+    UNAUTHORIZED_AUCTION_ACTION(40104, HttpStatus.UNAUTHORIZED, "유효하지 않은 경매에 접근하였습니다."),
+    OWNER_CANNOT_BID(40105, HttpStatus.UNAUTHORIZED, "경매의 소유자는 입찰할 수 없습니다."),
+    OWNER_CANNOT_AUTO_BID(40106, HttpStatus.UNAUTHORIZED, "경매의 소유자는 자동 입찰할 수 없습니다."),
+    UNAUTHORIZED(40100, HttpStatus.UNAUTHORIZED, "인증이 필요합니다."),
 
     // 403 Forbidden
     FORBIDDEN(40300, HttpStatus.FORBIDDEN, "권한이 없습니다."),

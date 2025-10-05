@@ -3,7 +3,7 @@ package com.leehk.auction.domain.auction.infrastructure;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.leehk.auction.domain.auction.domain.Auction;
 import com.leehk.auction.domain.auction.enums.AuctionStatus;
-import com.leehk.auction.domain.bid.converter.BidConverter;
+import com.leehk.auction.domain.bid.domain.AutoBid;
 import com.leehk.auction.domain.bid.domain.Bid;
 import com.leehk.auction.domain.bid.infrastructure.AutoBidEntity;
 import com.leehk.auction.domain.bid.infrastructure.BidEntity;
@@ -85,19 +85,18 @@ public class AuctionEntity {
 
         // ---- bids 동기화 (충돌 방지 방식) ----
         // map existing by id
-        Map<UUID, BidEntity> existingById = this.bids.stream()
+        Map<UUID, BidEntity> existingBidsById = this.bids.stream()
                 .filter(bidEntity -> bidEntity.getId() != null)
                 .collect(Collectors.toMap(BidEntity::getId, Function.identity()));
 
-        List<BidEntity> newList = new ArrayList<>();
-
+        List<BidEntity> updatedBids = new ArrayList<>();
         for (Bid bid : auction.getBids()) {
             UUID bidId = bid.getId();
-            if (bidId != null && existingById.containsKey(bidId)) {
+            if (bidId != null && existingBidsById.containsKey(bidId)) {
                 // 기존 영속 객체 업데이트
-                BidEntity exist = existingById.remove(bidId);
+                BidEntity exist = existingBidsById.remove(bidId);
                 exist.updateFromDomain(bid);
-                newList.add(exist);
+                updatedBids.add(exist);
             } else {
                 // 새로 추가되는 입찰(영속화 전 상태) — AuctionEntity(this)를 연관관계로 넣어 새 객체 생성
                 BidEntity newEntity = BidEntity.builder()
@@ -107,18 +106,53 @@ public class AuctionEntity {
                         .bidTime(bid.getBidTime())
                         .auctionEntity(this)
                         .build();
-                newList.add(newEntity);
+                updatedBids.add(newEntity);
             }
         }
 
-        // 기존에 남아있는 existingById 값들은 domain에서 제거된 것들 -> 컬렉션에서 제거(그리고 orphanRemoval 이면 DB에서 삭제됨)
-        for (BidEntity removed : existingById.values()) {
+        // 기존에 남아있는 existingBidsById 값들은 domain에서 제거된 것들 -> 컬렉션에서 제거(그리고 orphanRemoval 이면 DB에서 삭제됨)
+        for (BidEntity removed : existingBidsById.values()) {
             this.bids.remove(removed); // orphanRemoval = true면 삭제 처리
         }
 
         // 이제 컬렉션을 현재 상태로 맞춤: (clear + addAll) — 기존 영속 객체 재사용됨
         this.bids.clear();
-        this.bids.addAll(newList);
+        this.bids.addAll(updatedBids);
+
+        // autoBids 동기화
+        // map existing by id
+        Map<UUID, AutoBidEntity> existingAutoBidsById = this.autoBids.stream()
+                .filter(ab -> ab.getId() != null)
+                .collect(Collectors.toMap(AutoBidEntity::getId, Function.identity()));
+
+        List<AutoBidEntity> updatedAutoBids = new ArrayList<>();
+        for (AutoBid autoBid : auction.getAutoBids()) {
+            UUID autoBidId = autoBid.getId();
+            if (autoBidId != null && existingAutoBidsById.containsKey(autoBidId)) {
+                AutoBidEntity existAutoBid = existingAutoBidsById.remove(autoBidId);
+                existAutoBid.updateFromDomain(autoBid);
+                updatedAutoBids.add(existAutoBid);
+            } else {
+                AutoBidEntity autoBidEntity = AutoBidEntity.builder()
+                        .id(autoBid.getId())
+                        .autoBidderId(autoBid.getAutoBidderId())
+                        .maxAutoBidPrice(autoBid.getMaxAutoBidPrice())
+                        .currentAutoBidPrice(autoBid.getCurrentAutoBidPrice())
+                        .active(autoBid.isActive())
+                        .createdAt(autoBid.getCreatedAt())
+                        .updatedAt(autoBid.getUpdatedAt())
+                        .auctionEntity(this)
+                        .build();
+                updatedAutoBids.add(autoBidEntity);
+            }
+        }
+
+        for (AutoBidEntity removed : existingAutoBidsById.values()) {
+            this.autoBids.remove(removed);
+        }
+
+        this.autoBids.clear();
+        this.autoBids.addAll(updatedAutoBids);
     }
 
     public void addAutoBid(AutoBidEntity autoBidEntity) {

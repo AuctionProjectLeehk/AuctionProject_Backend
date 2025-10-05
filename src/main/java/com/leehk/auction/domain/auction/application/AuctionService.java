@@ -1,6 +1,7 @@
 package com.leehk.auction.domain.auction.application;
 
 import com.leehk.auction.domain.auction.domain.Auction;
+import com.leehk.auction.domain.bid.domain.AutoBid;
 import com.leehk.auction.global.response.CustomException;
 
 import java.util.List;
@@ -89,4 +90,46 @@ public interface AuctionService {
      *                         이미 종료된 경매인 경우
      */
     Auction endAuction(Long auctionId);
+
+    /**
+     * 특정 경매에 대한 자동 입찰 시스템을 등록합니다.
+     * 사용자가 최대 입찰가를 설정하면, 시스템이 해당 최대 금액까지
+     * 점진적으로 입찰을 수행합니다.
+     *
+     * @param auctionId       자동 입찰을 등록할 경매의 고유 식별자
+     * @param userId          자동 입찰을 등록하는 사용자의 고유 식별자
+     * @param maxAutoBidPrice 자동 입찰 시스템이 입찰할 수 있는 최대 금액
+     * @return 자동 입찰 등록을 반영한 업데이트된 {@link Auction} 객체
+     * @throws CustomException 경매를 찾을 수 없거나, 사용자가 자동 입찰을 할 수 없거나,
+     *                         최대 자동 입찰가가 유효하지 않거나 부족한 경우
+     */
+    Auction registerAutoBid(Long auctionId, Long userId, long maxAutoBidPrice);
+
+    /**
+     * 특정 경매에 대한 모든 활성화된 자동 입찰 프로세스를 실행합니다.
+     * 해당 경매에 등록된 자동 입찰들을 평가하고 각각의 최대 입찰 한도까지
+     * 필요에 따라 점진적으로 입찰을 수행합니다.
+     *
+     * @param auctionId 자동 입찰을 실행할 경매의 고유 식별자
+     */
+    void executeAutoBids(Long auctionId);
+
+    /**
+     * 특정 경매에서 특정 사용자의 자동 입찰 시스템을 비활성화합니다.
+     * 이는 해당 사용자의 자동 입찰 프로세스를 중지하여, 지정된 경매에서
+     * 더 이상 자동으로 입찰이 이루어지지 않도록 합니다.
+     *
+     * @param auctionId 자동 입찰을 비활성화할 경매의 고유 식별자
+     * @param userId    자동 입찰을 비활성화할 사용자의 고유 식별자
+     */
+    void deactivateAutoBidByUser(Long auctionId, Long userId);
+
+    /**
+     * 특정 경매에서 특정 자동 입찰 ID에 대한 자동 입찰 시스템을 비활성화합니다.
+     * 이는 지정된 자동 입찰 항목에 대해 더 이상 자동 입찰이 이루어지지 않도록 합니다.
+     *
+     * @param auctionId 자동 입찰을 비활성화할 경매의 고유 식별자
+     * @param autoBidId 비활성화할 자동 입찰의 고유 식별자
+     */
+    void deactivateAutoBidById(Long auctionId, UUID autoBidId);
 }

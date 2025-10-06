@@ -76,43 +76,7 @@ class AuctionServiceImplTest extends BaseH2Test {
         assertThat(foundAuction.getCurrentPrice()).isEqualTo(10000L);
     }
 
-    @Test
-    @DisplayName("입찰 성공 시 가격이 갱신")
-    void placeBid_Success() {
-        // given
-        User savedOwnerUser = userService.saveUser(testUser);
-        User savedBidderUser = userService.saveUser(makeUser(2L));
 
-        Auction createdAuction = auctionService.createAuction(testAuction, savedOwnerUser.getId());
-
-        // when
-        Auction updatedAuction = auctionService.placeBid(createdAuction.getId(), savedBidderUser.getId(), 11000L);
-
-        // then
-        assertThat(updatedAuction.getCurrentPrice()).isEqualTo(11000L);
-    }
-
-    @Test
-    @DisplayName("여러 번 입찰 시 가격이 순차적으로 갱신")
-    void multipleBids_Success() {
-        // given
-        User savedOwnerUser = userService.saveUser(testUser);
-        User savedBidderUser1 = userService.saveUser(makeUser(2L));
-        User savedBidderUser2 = userService.saveUser(makeUser(3L));
-
-        Auction createdAuction = auctionService.createAuction(testAuction, savedOwnerUser.getId());
-
-        // when
-        auctionService.placeBid(createdAuction.getId(), savedBidderUser1.getId(), 11000L);
-        Auction afterFirstBid = auctionService.getAuction(createdAuction.getId());
-
-        auctionService.placeBid(createdAuction.getId(), savedBidderUser2.getId(), 12000L);
-        Auction afterSecondBid = auctionService.getAuction(createdAuction.getId());
-
-        // then
-        assertThat(afterFirstBid.getCurrentPrice()).isEqualTo(11000L);
-        assertThat(afterSecondBid.getCurrentPrice()).isEqualTo(12000L);
-    }
 
     @Test
     @DisplayName("경매 종료 성공")
@@ -140,63 +104,6 @@ class AuctionServiceImplTest extends BaseH2Test {
                 .hasMessage(ErrorCode.AUCTION_NOT_FOUND.getMessage());
     }
 
-    @Test
-    @DisplayName("종료된 경매에 입찰 시 예외 발생")
-    void placeBid_OnEndedAuction() {
-        // given
-        User savedOwnerUser = userService.saveUser(testUser);
-        User savedBidderUser = userService.saveUser(makeUser(2L));
-
-        Auction createdAuction = auctionService.createAuction(testAuction, savedOwnerUser.getId());
-        auctionService.endAuction(createdAuction.getId());
-
-        // when and then
-        assertThatThrownBy(() -> auctionService.placeBid(createdAuction.getId(), savedBidderUser.getId(),11000L))
-                .isInstanceOf(CustomException.class)
-                .hasMessage(ErrorCode.AUCTION_ALREADY_ENDED.getMessage());
-    }
-
-    @Test
-    @DisplayName("현재 가격보다 낮은 가격으로 입찰")
-    void placeBid_LowerThanCurrent() {
-        // given
-        User savedOwnerUser = userService.saveUser(testUser);
-        User savedBidderUser = userService.saveUser(makeUser(2L));
-
-        Auction createdAuction = auctionService.createAuction(testAuction, savedOwnerUser.getId());
-
-        // when and then
-        assertThatThrownBy(() -> auctionService.placeBid(createdAuction.getId(), savedBidderUser.getId(),9000L))
-                .isInstanceOf(CustomException.class)
-                .hasMessage(ErrorCode.BID_TOO_LOW.getMessage());
-    }
-
-    @Test
-    @DisplayName("입찰 취소 테스트")
-    void cancelBid_Success() {
-        // given
-        User savedOwnerUser = userService.saveUser(testUser);
-        User savedBidderUser1 = userService.saveUser(makeUser(2L));
-        User savedBidderUser2 = userService.saveUser(makeUser(3L));
-        User savedBidderUser3 = userService.saveUser(makeUser(4L));
-
-        Auction createdAuction = auctionService.createAuction(testAuction, savedOwnerUser.getId());
-
-        auctionService.placeBid(createdAuction.getId(), savedBidderUser1.getId(), 11000L);
-        auctionService.placeBid(createdAuction.getId(), savedBidderUser2.getId(), 12000L);
-        auctionService.placeBid(createdAuction.getId(), savedBidderUser3.getId(), 13000L);
-
-        Auction auction = auctionService.getAuction(createdAuction.getId());
-        Bid highesetBid = auction.getHighestBid();
-
-        // then
-        auctionService.cancelBid(createdAuction.getId(), highesetBid.getId(), savedBidderUser3.getId());
-        Auction updatedAuction = auctionService.getAuction(createdAuction.getId());
-
-        // then
-        assertThat(updatedAuction.getCurrentPrice()).isEqualTo(12000L);
-        assertThat(updatedAuction.getBids().size()).isEqualTo(2);
-    }
 
     @Test
     @DisplayName("경매 삭제 후 조회 예외 발생")

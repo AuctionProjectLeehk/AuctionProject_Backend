@@ -16,7 +16,7 @@ public interface AutoBidRepository {
 
     List<AutoBidEntity> findByAuctionEntity_IdAndActiveTrue(Long auctionId);
 
-    Optional<AutoBidEntity> findByAuctionEntity_IdAndAutoBidderId(Long auctionId, Long bidderId);
+    Optional<AutoBidEntity> findByAuctionEntity_IdAndAutoBidderId(Long auctionId, Long autoBidderId);
 
     void delete(AutoBidEntity autoBidEntity);
 }

@@ -33,6 +33,11 @@ public class AuctionServiceImpl implements AuctionService {
     }
 
     @Override
+    public boolean existsAuctionById(Long auctionId) {
+        return auctionRepository.findById(auctionId).isPresent();
+    }
+
+    @Override
     public List<Auction> getOngoingAuctions() {
         return auctionRepository.findByStatus(AuctionStatus.ONGOING)
                 .stream()
@@ -135,7 +140,7 @@ public class AuctionServiceImpl implements AuctionService {
         AuctionEntity auctionEntity = auctionRepository.findByIdForUpdate(auctionId)
                 .orElseThrow(() -> new CustomException(ErrorCode.AUCTION_NOT_FOUND));
 
-        if (userService.getUserById(userId) == null)
+        if (!userService.isUserExistById(userId))
             throw new CustomException(ErrorCode.USER_NOT_FOUND);
 
         Auction auction = AuctionConverter.entityToDomain(auctionEntity);
@@ -164,7 +169,7 @@ public class AuctionServiceImpl implements AuctionService {
 
     @Override
     @Transactional
-    public void deactivateAutoBidByUser(Long auctionId, Long userId) {
+    public void deactivateAutoBidByUserId(Long auctionId, Long userId) {
         AuctionEntity entity = auctionRepository.findByIdForUpdate(auctionId)
                 .orElseThrow(() -> new CustomException(ErrorCode.AUCTION_NOT_FOUND));
 

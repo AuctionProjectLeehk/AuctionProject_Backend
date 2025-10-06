@@ -1,7 +1,6 @@
 package com.leehk.auction.domain.auction.application;
 
 import com.leehk.auction.domain.auction.domain.Auction;
-import com.leehk.auction.domain.bid.domain.AutoBid;
 import com.leehk.auction.global.response.CustomException;
 
 import java.util.List;
@@ -17,6 +16,13 @@ public interface AuctionService {
      * @throws CustomException 지정된 식별자의 경매를 찾을 수 없는 경우
      */
     Auction getAuction(Long auctionId);
+
+    /**
+     * 이 주석은 auctionId로 경매가 존재하는지 확인하는 메서드에 대한 설명입니다.
+     * @param auctionId 확인할 경매의 고유 식별자
+     * @return 경매가 존재하면 true, 존재하지 않으면 false를 반환함
+     */
+    boolean existsAuctionById(Long auctionId);
 
     /**
      * 진행 중인 모든 경매 목록을 조회합니다.
@@ -122,7 +128,7 @@ public interface AuctionService {
      * @param auctionId 자동 입찰을 비활성화할 경매의 고유 식별자
      * @param userId    자동 입찰을 비활성화할 사용자의 고유 식별자
      */
-    void deactivateAutoBidByUser(Long auctionId, Long userId);
+    void deactivateAutoBidByUserId(Long auctionId, Long userId);
 
     /**
      * 특정 경매에서 특정 자동 입찰 ID에 대한 자동 입찰 시스템을 비활성화합니다.

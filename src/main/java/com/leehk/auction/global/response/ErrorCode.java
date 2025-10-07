@@ -17,6 +17,9 @@ public enum ErrorCode {
     INVALID_AUTO_BID_MAX_PRICE(40006, HttpStatus.BAD_REQUEST, "최대 입찰가는 현재 입찰가 이상이어야 합니다."),
     INVALID_AUTO_BID_CREATE(40007, HttpStatus.BAD_REQUEST, "자동 입찰 생성이 불가능합니다."),
     INVALID_AUTO_BID_ACCESS(40008, HttpStatus.BAD_REQUEST, "자동 입찰 접근이 불가능합니다."),
+    INVALID_AMOUNT_INPUT(40009, HttpStatus.BAD_REQUEST, "입출금 금액은 0보다 커야 합니다."),
+    AMOUNT_TOO_MANY(40010, HttpStatus.BAD_REQUEST, "출금 금액은 잔액보다 클 수 없습니다."),
+    INVALID_WALLET_NAME(40011, HttpStatus.BAD_REQUEST, "올바르지 않은 지갑 이름입니다"),
     BAD_REQUEST(40100, HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
 
     // 401 Unauthorized
@@ -36,6 +39,7 @@ public enum ErrorCode {
     AUCTION_NOT_FOUND(40402, HttpStatus.NOT_FOUND, "경매를 찾을 수 없습니다."),
     BID_NOT_FOUND(40403, HttpStatus.NOT_FOUND, "입찰을 찾을 수 없습니다."),
     AUTO_BID_NOT_FOUND(40404, HttpStatus.NOT_FOUND, "자동 입찰을 찾을 수 없습니다."),
+    WALLET_NOT_FOUND(40405, HttpStatus.NOT_FOUND, "지갑을 찾을 수 없습니다."),
     NOT_FOUND(40400, HttpStatus.NOT_FOUND, "찾을 수 없습니다."),
 
     // 409 Conflict

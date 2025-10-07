@@ -2,6 +2,7 @@ package com.leehk.auction.domain.money.domain;
 
 import com.leehk.auction.global.response.CustomException;
 import com.leehk.auction.global.response.ErrorCode;
+import jakarta.persistence.Embeddable;
 import lombok.Getter;
 
 
@@ -12,10 +13,12 @@ import lombok.Getter;
  * Wallet 등 다른 도메인에서 금액 계산 시 사용됩니다.
  */
 @Getter
+@Embeddable
 public class Money {
 
-    private final long amount;
+    private long amount;  // jpa 호환을 위해 final x
 
+    protected Money() {}
 
     /**
      * Money 생성자

@@ -1,0 +1,46 @@
+package com.leehk.auction.domain.wallet.infrastructure;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.leehk.auction.domain.wallet.enums.TransactionType;
+import jakarta.persistence.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Entity
+@Table(name = "wallet_transactions")
+@Getter
+@NoArgsConstructor
+public class WalletTransactionEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "wallet_id")
+    @JsonBackReference
+    private WalletEntity wallet;
+
+    @Enumerated(EnumType.STRING)
+    private TransactionType transactionType;
+
+    private long amount;
+
+    private LocalDateTime createAt;
+
+    @Builder
+    public WalletTransactionEntity(WalletEntity wallet, TransactionType transactionType, long amount, LocalDateTime createAt) {
+        this.wallet = wallet;
+        this.transactionType = transactionType;
+        this.amount = amount;
+        this.createAt = createAt != null ? createAt : LocalDateTime.now();
+    }
+
+    public void assignWallet(WalletEntity wallet) {
+        this.wallet = wallet;
+    }
+}

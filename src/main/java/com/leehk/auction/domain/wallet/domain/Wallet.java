@@ -38,13 +38,13 @@ public class Wallet {
      *
      * @param publicId   지갑 고유 식별자, null일 경우 UUID 자동 생성
      * @param userId     지갑 소유자 ID
-     * @param wallName   지갑 이름
+     * @param walletName   지갑 이름
      */
     @Builder
-    public Wallet(UUID publicId, Long userId, String wallName) {
+    public Wallet(UUID publicId, Long userId, String walletName) {
         this.publicId = publicId != null ? publicId : UUID.randomUUID();
         this.userId = userId;
-        this.walletName = wallName;
+        this.walletName = walletName;
         this.money = new Money(0L);
         this.walletStatus = WalletStatus.ACTIVE;
         this.createdAt = LocalDateTime.now();

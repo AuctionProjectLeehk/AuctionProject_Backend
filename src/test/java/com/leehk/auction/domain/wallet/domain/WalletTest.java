@@ -29,7 +29,7 @@ class WalletTest {
     private Wallet makeWallet(long index, Long userId) {
         return Wallet.builder()
                 .userId(userId)
-                .wallName("walletName" + index)
+                .walletName("walletName" + index)
                 .build();
     }
     

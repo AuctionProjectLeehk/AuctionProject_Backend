@@ -3,10 +3,12 @@ package com.leehk.auction.domain.wallet.domain;
 import com.leehk.auction.domain.money.domain.Money;
 import com.leehk.auction.domain.wallet.enums.TransactionType;
 import lombok.Builder;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Getter
 @Builder
 public class WalletTransaction {
     private final UUID walletId;

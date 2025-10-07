@@ -1,6 +1,7 @@
 package com.leehk.auction.domain.user.domain;
 
 import com.leehk.auction.domain.auction.domain.Auction;
+import com.leehk.auction.domain.wallet.domain.Wallet;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -26,7 +27,14 @@ public class User {
     @Builder.Default
     private List<Auction> auctions = new ArrayList<>();
 
+    @Builder.Default
+    private List<Wallet> wallets = new ArrayList<>();
+
     public void addAuction(Auction auction) {
         this.auctions.add(auction);
+    }
+
+    public void addWallet(Wallet wallet) {
+        this.wallets.add(wallet);
     }
 }

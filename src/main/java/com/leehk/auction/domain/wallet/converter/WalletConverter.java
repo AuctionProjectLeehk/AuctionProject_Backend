@@ -14,7 +14,7 @@ public class WalletConverter {
         Wallet wallet = Wallet.builder()
                 .publicId(walletEntity.getPublicId())
                 .userId(walletEntity.getUserId())
-                .wallName(walletEntity.getWalletName())
+                .walletName(walletEntity.getWalletName())
                 .build();
 
         // 상태 복원

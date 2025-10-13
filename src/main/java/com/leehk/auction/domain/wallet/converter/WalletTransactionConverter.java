@@ -17,8 +17,8 @@ public class WalletTransactionConverter {
         return WalletTransaction.builder()
                 .walletId(walletTransactionEntity.getWallet().getPublicId())
                 .money(new Money(walletTransactionEntity.getAmount()))
-                .type(walletTransactionEntity.getTransactionType())
-                .createdAt(walletTransactionEntity.getCreateAt())
+                .transactionType(walletTransactionEntity.getTransactionType())
+                .createdAt(walletTransactionEntity.getCreatedAt())
                 .build();
     }
 
@@ -32,9 +32,9 @@ public class WalletTransactionConverter {
     public static WalletTransactionEntity domainToEntity(WalletTransaction walletTransaction, WalletEntity walletEntity) {
         return WalletTransactionEntity.builder()
                 .wallet(walletEntity)
-                .transactionType(walletTransaction.getType())
+                .transactionType(walletTransaction.getTransactionType())
                 .amount(walletTransaction.getMoney().getAmount())
-                .createAt(walletTransaction.getCreatedAt())
+                .createdAt(walletTransaction.getCreatedAt())
                 .build();
     }
 }

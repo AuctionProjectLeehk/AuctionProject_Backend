@@ -5,6 +5,7 @@ import com.leehk.auction.domain.money.domain.Money;
 import com.leehk.auction.domain.wallet.domain.Wallet;
 import com.leehk.auction.domain.wallet.domain.WalletTransaction;
 import com.leehk.auction.domain.wallet.enums.WalletStatus;
+import com.leehk.auction.global.CollectionSyncHelper;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -63,40 +64,52 @@ public class WalletEntity {
         this.money = wallet.getMoney();
         this.walletStatus = wallet.getWalletStatus();
         this.createdAt = wallet.getCreatedAt();
-        
-        // transactions 동기화
-        Map<UUID, WalletTransactionEntity> existingWalletTransactionsById = this.transactions.stream()
-                .filter(walletTransactionEntity -> walletTransactionEntity.getId() != null)
-                .collect(Collectors.toMap(WalletTransactionEntity::getId, Function.identity()));
 
-        List<WalletTransactionEntity> updateWalletTransactionEntities = new ArrayList<>();
-        for (WalletTransaction tx: wallet.getTransactions()) {
-            UUID txId = tx.getId();
-            if (txId != null && existingWalletTransactionsById.containsKey(txId)) {
-                // 기존 영속 객체 업데이트
-                WalletTransactionEntity exist = existingWalletTransactionsById.remove(txId);
-                exist.updateFromDomain(tx);
-                updateWalletTransactionEntities.add(exist);
-            } else {
-                WalletTransactionEntity walletTransactionEntity = WalletTransactionEntity.builder()
+//        // transactions 동기화
+//        Map<UUID, WalletTransactionEntity> existingWalletTransactionsById = this.transactions.stream()
+//                .filter(walletTransactionEntity -> walletTransactionEntity.getId() != null)
+//                .collect(Collectors.toMap(WalletTransactionEntity::getId, Function.identity()));
+//
+//        List<WalletTransactionEntity> updateWalletTransactionEntities = new ArrayList<>();
+//        for (WalletTransaction tx: wallet.getTransactions()) {
+//            UUID txId = tx.getId();
+//            if (txId != null && existingWalletTransactionsById.containsKey(txId)) {
+//                // 기존 영속 객체 업데이트
+//                WalletTransactionEntity exist = existingWalletTransactionsById.remove(txId);
+//                exist.updateFromDomain(tx);
+//                updateWalletTransactionEntities.add(exist);
+//            } else {
+//                WalletTransactionEntity walletTransactionEntity = WalletTransactionEntity.builder()
+//                        .wallet(this)
+//                        .transactionType(tx.getTransactionType())
+//                        .amount(tx.getMoney().getAmount())
+//                        .build();
+//                updateWalletTransactionEntities.add(walletTransactionEntity);
+//            }
+//        }
+//
+//        // ✅ 도메인에서 제거된 트랜잭션 제거 (orphanRemoval = true 로 DB에서도 삭제됨)
+//        for (WalletTransactionEntity removed: existingWalletTransactionsById.values())
+//            this.transactions.remove(removed);
+//
+//        // ✅ 기존 리스트 갱신 (clear() 하면 detach 되므로 addAll로만 갱신)
+//        this.transactions.retainAll(updateWalletTransactionEntities);
+//        for (WalletTransactionEntity tx : updateWalletTransactionEntities) {
+//            if (!this.transactions.contains(tx)) {
+//                this.transactions.add(tx);
+//            }
+//        }
+
+        CollectionSyncHelper.sync(
+                this.transactions,
+                wallet.getTransactions(),
+                WalletTransaction::getId,
+                WalletTransactionEntity::updateFromDomain,
+                tx -> WalletTransactionEntity.builder()
                         .wallet(this)
                         .transactionType(tx.getTransactionType())
                         .amount(tx.getMoney().getAmount())
-                        .build();
-                updateWalletTransactionEntities.add(walletTransactionEntity);
-            }
-        }
-
-        // ✅ 도메인에서 제거된 트랜잭션 제거 (orphanRemoval = true 로 DB에서도 삭제됨)
-        for (WalletTransactionEntity removed: existingWalletTransactionsById.values())
-            this.transactions.remove(removed);
-
-        // ✅ 기존 리스트 갱신 (clear() 하면 detach 되므로 addAll로만 갱신)
-        this.transactions.retainAll(updateWalletTransactionEntities);
-        for (WalletTransactionEntity tx : updateWalletTransactionEntities) {
-            if (!this.transactions.contains(tx)) {
-                this.transactions.add(tx);
-            }
-        }
+                        .build()
+        );
     }
 }

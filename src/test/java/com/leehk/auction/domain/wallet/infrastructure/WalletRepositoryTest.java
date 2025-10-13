@@ -47,6 +47,39 @@ class WalletRepositoryTest {
     }
 
     @Test
+    @DisplayName("Id로 지갑 찾기 - 성공")
+    void findById_Success() {
+        // given
+        Long userId = 1L;
+        WalletEntity walletEntity = walletRepository.save(makeWalletEntity(userId));
+        UUID walletId = walletEntity.getPublicId();
+
+        // when
+        WalletEntity foundWalletEntity = walletRepository.findById(walletId)
+                .orElse(null);
+
+        // then
+        assertThat(foundWalletEntity).isNotNull();
+        assertThat(walletEntity.getUserId()).isEqualTo(foundWalletEntity.getUserId());
+        assertThat(walletEntity.getPublicId()).isEqualTo(foundWalletEntity.getPublicId());
+    }
+    
+    @Test
+    @DisplayName("Id로 지갑 찾기 - 실패: 없는 지갑 Id로 참조")
+    void findById_Fail_NotFoundWallet() {
+        // given
+        Long userId = 1L;
+        WalletEntity walletEntity = walletRepository.save(makeWalletEntity(userId));
+
+        // when
+        WalletEntity foundWalletEntity = walletRepository.findById(UUID.randomUUID())
+                .orElse(null);
+
+        // then
+        assertThat(foundWalletEntity).isNull();
+    }
+
+    @Test
     @DisplayName("유저 Id로 지갑 찾기 - 성공")
     void findByUserId_Success() {
         // given

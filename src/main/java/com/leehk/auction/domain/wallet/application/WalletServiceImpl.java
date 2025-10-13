@@ -114,6 +114,6 @@ public class WalletServiceImpl implements WalletService {
         fromWallet.transfer(toWallet, new Money(amount));
 
         savedFromWalletEntity.updateFromDomain(fromWallet);
-        savedFromWalletEntity.updateFromDomain(toWallet);
+        savedToWalletEntity.updateFromDomain(toWallet);
     }
 }

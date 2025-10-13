@@ -53,6 +53,19 @@ public class Wallet {
     }
 
     /**
+     * Wallet 을 생성합니다.
+     * @param userId        지갑 소유자 Id
+     * @param walletName    지갑 이름
+     * @return              Wallet 객체
+     */
+    public static Wallet createWallet(Long userId, String walletName) {
+        return Wallet.builder()
+                .userId(userId)
+                .walletName(walletName)
+                .build();
+    }
+
+    /**
      * 지갑 이름을 업데이트합니다.
      *
      * @param newWalletName 새로운 지갑 이름

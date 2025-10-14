@@ -25,7 +25,7 @@ public class WalletConverter {
         }
 
         // 잔액
-        wallet.deposit(new Money(walletEntity.getMoney().getAmount()));
+        wallet.updateMoney(walletEntity.getMoney());
 
         // Transaction 복원
         if (walletEntity.getTransactions() != null && !walletEntity.getTransactions().isEmpty()) {

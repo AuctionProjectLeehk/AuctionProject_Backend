@@ -20,6 +20,7 @@ public enum ErrorCode {
     INVALID_AMOUNT_INPUT(40009, HttpStatus.BAD_REQUEST, "입출금 금액은 0보다 커야 합니다."),
     AMOUNT_TOO_MANY(40010, HttpStatus.BAD_REQUEST, "출금 금액은 잔액보다 클 수 없습니다."),
     INVALID_WALLET_NAME(40011, HttpStatus.BAD_REQUEST, "올바르지 않은 지갑 이름입니다"),
+    WALLET_ALREADY_EXIST(40012, HttpStatus.BAD_REQUEST, "이미 존재하는 지갑입니다"),
     BAD_REQUEST(40100, HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
 
     // 401 Unauthorized
@@ -40,6 +41,7 @@ public enum ErrorCode {
     BID_NOT_FOUND(40403, HttpStatus.NOT_FOUND, "입찰을 찾을 수 없습니다."),
     AUTO_BID_NOT_FOUND(40404, HttpStatus.NOT_FOUND, "자동 입찰을 찾을 수 없습니다."),
     WALLET_NOT_FOUND(40405, HttpStatus.NOT_FOUND, "지갑을 찾을 수 없습니다."),
+    WALLET_TRANSACTION_NOT_FOUND(40406, HttpStatus.NOT_FOUND, "지갑 거래 내역을 찾을 수 없습니다."),
     NOT_FOUND(40400, HttpStatus.NOT_FOUND, "찾을 수 없습니다."),
 
     // 409 Conflict

@@ -53,6 +53,19 @@ public class Wallet {
     }
 
     /**
+     * Wallet 을 생성합니다.
+     * @param userId        지갑 소유자 Id
+     * @param walletName    지갑 이름
+     * @return              Wallet 객체
+     */
+    public static Wallet createWallet(Long userId, String walletName) {
+        return Wallet.builder()
+                .userId(userId)
+                .walletName(walletName)
+                .build();
+    }
+
+    /**
      * 지갑 이름을 업데이트합니다.
      *
      * @param newWalletName 새로운 지갑 이름
@@ -110,7 +123,11 @@ public class Wallet {
      */
     public Wallet deposit(Money money) {
         this.money = this.money.add(money);
-        this.transactions.add(WalletTransaction.create(this.publicId, this.money, TransactionType.DEPOSIT));
+
+        System.out.println("before: " + this.transactions.size());
+        this.transactions.add(WalletTransaction.create(this.publicId, money, TransactionType.DEPOSIT));
+        System.out.println("after: " + this.transactions.size());
+
         this.updatedAt = LocalDateTime.now();
         return this;
     }
@@ -123,7 +140,7 @@ public class Wallet {
      */
     public Wallet withdraw(Money money) {
         this.money = this.money.subtract(money);
-        this.transactions.add(WalletTransaction.create(this.publicId, this.money, TransactionType.WITHDRAW));
+        this.transactions.add(WalletTransaction.create(this.publicId, money, TransactionType.WITHDRAW));
         this.updatedAt = LocalDateTime.now();
         return this;
     }
@@ -151,5 +168,9 @@ public class Wallet {
      */
     public boolean hasEnoughBalance(long requiredBalance) {
         return this.money.getAmount() >= requiredBalance;
+    }
+
+    public void updateMoney(Money money) {
+        this.money = money;
     }
 }

@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 class WalletTransactionRepositoryTest {
@@ -53,6 +52,54 @@ class WalletTransactionRepositoryTest {
         assertThat(savedTransaction).isNotNull();
         assertThat(savedTransaction.getId()).isEqualTo(transaction1.getId());
         assertThat(savedTransaction.getWallet()).isEqualTo(walletEntity);
+    }
+
+    @Test
+    @DisplayName("거래 내역 ID로 찾기 - 성공")
+    void findById_Success() {
+        // given
+        WalletEntity walletEntity = walletRepository.save(makeWalletEntity(1L));
+
+        WalletTransactionEntity savedTransaction = walletTransactionRepository.save(WalletTransactionEntity.builder()
+                .wallet(walletEntity)
+                .transactionType(TransactionType.DEPOSIT)
+                .amount(1000L)
+                .build()
+        );
+
+        walletRepository.save(walletEntity);
+
+        // when
+        WalletTransactionEntity foundWalletTransactionEntity = walletTransactionRepository.findById(savedTransaction.getId())
+                .orElse(null);
+
+        // then
+        assertThat(foundWalletTransactionEntity).isNotNull();
+        assertThat(foundWalletTransactionEntity.getWallet()).isEqualTo(savedTransaction.getWallet());
+        assertThat(foundWalletTransactionEntity.getTransactionType()).isEqualTo(savedTransaction.getTransactionType());
+    }
+
+    @Test
+    @DisplayName("거래 내역 ID로 찾기 - 실패: 없는 Id로 조회")
+    void findById_Fail_NotFoundWalletTransaction() {
+        // given
+        WalletEntity walletEntity = walletRepository.save(makeWalletEntity(1L));
+
+        WalletTransactionEntity transaction = WalletTransactionEntity.builder()
+                .wallet(walletEntity)
+                .transactionType(TransactionType.DEPOSIT)
+                .amount(1000L)
+                .build();
+
+        walletRepository.save(walletEntity);
+        walletTransactionRepository.save(transaction);
+
+        // when
+        WalletTransactionEntity foundWalletTransactionEntity = walletTransactionRepository.findById(UUID.randomUUID())
+                .orElse(null);
+
+        // then
+        assertThat(foundWalletTransactionEntity).isNull();
     }
     
     @Test
@@ -101,19 +148,19 @@ class WalletTransactionRepositoryTest {
                 .wallet(walletEntity)
                 .transactionType(TransactionType.DEPOSIT)
                 .amount(1000L)
-                .createAt(now.plusDays(20))
+                .createdAt(now.plusDays(20))
                 .build();
         WalletTransactionEntity transaction2 = WalletTransactionEntity.builder()
                 .wallet(walletEntity)
                 .transactionType(TransactionType.TRANSFER)
-                .createAt(now.plusDays(10))
+                .createdAt(now.plusDays(10))
                 .amount(100L)
                 .build();
         WalletTransactionEntity transaction3 = WalletTransactionEntity.builder()
                 .wallet(walletEntity)
                 .transactionType(TransactionType.WITHDRAW)
                 .amount(200L)
-                .createAt(now.plusDays(15))
+                .createdAt(now.plusDays(15))
                 .build();
 
         walletRepository.save(walletEntity);
@@ -122,12 +169,12 @@ class WalletTransactionRepositoryTest {
         walletTransactionRepository.save(transaction3);
 
         // when
-        List<WalletTransactionEntity> orderedTransactions = walletTransactionRepository.findByWalletOrderByCreateAtDesc(walletEntity);
+        List<WalletTransactionEntity> orderedTransactions = walletTransactionRepository.findByWalletOrderByCreatedAtDesc(walletEntity);
 
         // then: 1 3 2 순서 확인
         assertThat(orderedTransactions.size()).isEqualTo(3);
         assertThat(orderedTransactions.stream()
-                .map(WalletTransactionEntity::getCreateAt)
+                .map(WalletTransactionEntity::getCreatedAt)
                 .toArray()).isEqualTo(new LocalDateTime[]{now.plusDays(20), now.plusDays(15), now.plusDays(10)});
         assertThat(orderedTransactions.stream()
                 .map(WalletTransactionEntity::getId)

@@ -1,6 +1,7 @@
 package com.leehk.auction.domain.wallet.infrastructure;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public interface WalletRepository {
 
@@ -11,6 +12,14 @@ public interface WalletRepository {
      * @return WalletEntity
      */
     WalletEntity save(WalletEntity wallet);
+
+    /**
+     * Wallet ID로 지갑 조회
+     *
+     * @param walletId 지갑 ID
+     * @return Optional<WalletEntity>
+     */
+    Optional<WalletEntity> findById(UUID walletId);
 
     /**
      * 사용자 ID로 지갑 조회

@@ -60,22 +60,23 @@ class WalletTransactionRepositoryTest {
         // given
         WalletEntity walletEntity = walletRepository.save(makeWalletEntity(1L));
 
-        WalletTransactionEntity transaction = WalletTransactionEntity.builder()
+        WalletTransactionEntity savedTransaction = walletTransactionRepository.save(WalletTransactionEntity.builder()
                 .wallet(walletEntity)
                 .transactionType(TransactionType.DEPOSIT)
                 .amount(1000L)
-                .build();
+                .build()
+        );
 
         walletRepository.save(walletEntity);
 
         // when
-        WalletTransactionEntity foundWalletTransactionEntity = walletTransactionRepository.findById(transaction.getId())
+        WalletTransactionEntity foundWalletTransactionEntity = walletTransactionRepository.findById(savedTransaction.getId())
                 .orElse(null);
 
         // then
         assertThat(foundWalletTransactionEntity).isNotNull();
-        assertThat(foundWalletTransactionEntity.getWallet()).isEqualTo(transaction.getWallet());
-        assertThat(foundWalletTransactionEntity.getTransactionType()).isEqualTo(transaction.getTransactionType());
+        assertThat(foundWalletTransactionEntity.getWallet()).isEqualTo(savedTransaction.getWallet());
+        assertThat(foundWalletTransactionEntity.getTransactionType()).isEqualTo(savedTransaction.getTransactionType());
     }
 
     @Test

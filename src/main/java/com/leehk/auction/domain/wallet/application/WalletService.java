@@ -1,11 +1,9 @@
 package com.leehk.auction.domain.wallet.application;
 
 import com.leehk.auction.domain.wallet.domain.Wallet;
-import com.leehk.auction.domain.wallet.domain.WalletTransaction;
-import com.leehk.auction.domain.wallet.enums.TransactionType;
 import com.leehk.auction.domain.wallet.enums.WalletStatus;
 
-import java.util.List;
+
 import java.util.UUID;
 
 public interface WalletService {

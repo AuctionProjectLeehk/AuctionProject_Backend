@@ -198,6 +198,7 @@ class WalletTest {
     @Test
     @DisplayName("지갑에서 다른 지갑으로 금액 송금 - 실패: 너무 많은 금액 송금")
     void transfer_Fail_TooManyTransfer() {
+        // given
         User user1 = makeUser(1L);
         Wallet wallet1 = makeWallet(11L, user1.getId());
         wallet1.deposit(new Money(10000L));
@@ -206,7 +207,7 @@ class WalletTest {
         Wallet wallet2 = makeWallet(22L, user2.getId());
         wallet2.deposit(new Money(12000L));
 
-        // when
+        // when and then
         assertThatThrownBy(() -> wallet1.transfer(wallet2, new Money(11000L)))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.AMOUNT_TOO_MANY.getMessage());
@@ -215,7 +216,7 @@ class WalletTest {
     @Test
     @DisplayName("지갑 잔액 확인 - 성공")
     void hasEnoughBalance_Success() {
-        // then
+        // given
         User user = makeUser(1L);
         Wallet wallet = makeWallet(2L, user.getId());
         wallet.deposit(new Money(10000L));
@@ -224,5 +225,37 @@ class WalletTest {
         assertThat(wallet.hasEnoughBalance(7000L)).isTrue();
         assertThat(wallet.hasEnoughBalance(10000L)).isTrue();
         assertThat(wallet.hasEnoughBalance(12000L)).isFalse();
+    }
+
+    @Test
+    @DisplayName("입출금 통합 - 성공")
+    void WalletTest_Success() {
+        // given
+        User user = makeUser(1L);
+        Wallet wallet1 = makeWallet(2L, user.getId());
+        Wallet wallet2 = makeWallet(3L, user.getId());
+
+        // when
+        long amount1 = 1000L;
+        wallet1.deposit(new Money(amount1));
+
+        long amount2 = 1200L;
+        wallet1.deposit(new Money(amount2));
+
+        long amount3 = 800L;
+        wallet1.withdraw(new Money(amount3));
+
+        long amount4 = 1000L;
+        wallet2.deposit(new Money(amount4));
+
+        long amount5 = 300L;
+        wallet2.withdraw(new Money(amount5));
+
+        long amount6 = 100L;
+        wallet1.transfer(wallet2, new Money(amount6));
+
+        // then
+        assertThat(wallet1.getMoney().getAmount()).isEqualTo(amount1 + amount2 - amount3 - amount6);
+        assertThat(wallet2.getMoney().getAmount()).isEqualTo(amount4 - amount5 + amount6);
     }
 }

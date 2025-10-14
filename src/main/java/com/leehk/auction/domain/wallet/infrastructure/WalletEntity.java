@@ -65,50 +65,17 @@ public class WalletEntity {
         this.walletStatus = wallet.getWalletStatus();
         this.createdAt = wallet.getCreatedAt();
 
-//        // transactions 동기화
-//        Map<UUID, WalletTransactionEntity> existingWalletTransactionsById = this.transactions.stream()
-//                .filter(walletTransactionEntity -> walletTransactionEntity.getId() != null)
-//                .collect(Collectors.toMap(WalletTransactionEntity::getId, Function.identity()));
-//
-//        List<WalletTransactionEntity> updateWalletTransactionEntities = new ArrayList<>();
-//        for (WalletTransaction tx: wallet.getTransactions()) {
-//            UUID txId = tx.getId();
-//            if (txId != null && existingWalletTransactionsById.containsKey(txId)) {
-//                // 기존 영속 객체 업데이트
-//                WalletTransactionEntity exist = existingWalletTransactionsById.remove(txId);
-//                exist.updateFromDomain(tx);
-//                updateWalletTransactionEntities.add(exist);
-//            } else {
-//                WalletTransactionEntity walletTransactionEntity = WalletTransactionEntity.builder()
-//                        .wallet(this)
-//                        .transactionType(tx.getTransactionType())
-//                        .amount(tx.getMoney().getAmount())
-//                        .build();
-//                updateWalletTransactionEntities.add(walletTransactionEntity);
-//            }
-//        }
-//
-//        // ✅ 도메인에서 제거된 트랜잭션 제거 (orphanRemoval = true 로 DB에서도 삭제됨)
-//        for (WalletTransactionEntity removed: existingWalletTransactionsById.values())
-//            this.transactions.remove(removed);
-//
-//        // ✅ 기존 리스트 갱신 (clear() 하면 detach 되므로 addAll로만 갱신)
-//        this.transactions.retainAll(updateWalletTransactionEntities);
-//        for (WalletTransactionEntity tx : updateWalletTransactionEntities) {
-//            if (!this.transactions.contains(tx)) {
-//                this.transactions.add(tx);
-//            }
-//        }
-
+        // transactions 동기화
         CollectionSyncHelper.sync(
-                this.transactions,
-                wallet.getTransactions(),
-                WalletTransaction::getId,
-                WalletTransactionEntity::updateFromDomain,
-                tx -> WalletTransactionEntity.builder()
+                this.transactions,                         // 엔티티 리스트 (영속 상태)
+                wallet.getTransactions(),                  // 도메인 리스트
+                WalletTransaction::getId,                  // 도메인 ID 추출
+                WalletTransactionEntity::getId,            // 엔티티 ID 추출
+                WalletTransactionEntity::updateFromDomain,  // 업데이트 함수
+                domain -> WalletTransactionEntity.builder()            // 새 엔티티 생성 함수
                         .wallet(this)
-                        .transactionType(tx.getTransactionType())
-                        .amount(tx.getMoney().getAmount())
+                        .transactionType(domain.getTransactionType())
+                        .amount(domain.getMoney().getAmount())
                         .build()
         );
     }

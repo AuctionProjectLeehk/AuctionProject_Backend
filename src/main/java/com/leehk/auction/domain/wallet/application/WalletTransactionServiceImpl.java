@@ -27,22 +27,6 @@ public class WalletTransactionServiceImpl implements WalletTransactionService {
 
     @Override
     @Transactional
-    public WalletTransaction deposit(UUID walletId, long amount) {
-        Wallet wallet = walletService.deposit(walletId, amount);
-
-        return wallet.getTransactions().get(wallet.getTransactions().size()-1);
-    }
-
-    @Override
-    @Transactional
-    public WalletTransaction withdraw(UUID walletId, long amount) {
-        Wallet wallet = walletService.withdraw(walletId, amount);
-
-        return wallet.getTransactions().get(wallet.getTransactions().size()-1);
-    }
-
-    @Override
-    @Transactional
     public List<WalletTransaction> getTransactions(UUID walletId) {
         WalletEntity savedWalletEntity = walletRepository.findById(walletId)
                 .orElseThrow(() -> new CustomException(ErrorCode.WALLET_NOT_FOUND));

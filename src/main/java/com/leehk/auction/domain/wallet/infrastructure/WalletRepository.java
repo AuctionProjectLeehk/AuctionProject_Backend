@@ -27,7 +27,7 @@ public interface WalletRepository {
      * @param userId 사용자 ID
      * @return Optional<WalletEntity>
      */
-    Optional<WalletEntity> findByUserId(Long userId);
+    Optional<WalletEntity> findByUserEntity_Id(Long userId);
 
     /**
      * 사용자 ID + 지갑 이름으로 조회 (중복 방지 등)
@@ -36,5 +36,5 @@ public interface WalletRepository {
      * @param walletName 지갑 이름
      * @return Optional<WalletEntity>
      */
-    Optional<WalletEntity> findByUserIdAndWalletName(Long userId, String walletName);
+    Optional<WalletEntity> findByUserEntity_IdAndWalletName(Long userId, String walletName);
 }

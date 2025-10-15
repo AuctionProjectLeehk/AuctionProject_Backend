@@ -1,7 +1,9 @@
 package com.leehk.auction.domain.wallet.infrastructure;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.leehk.auction.domain.money.domain.Money;
+import com.leehk.auction.domain.user.infrastructure.UserEntity;
 import com.leehk.auction.domain.wallet.domain.Wallet;
 import com.leehk.auction.domain.wallet.domain.WalletTransaction;
 import com.leehk.auction.domain.wallet.enums.WalletStatus;
@@ -14,10 +16,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "wallets")
@@ -31,7 +30,10 @@ public class WalletEntity {
 
     private String walletName;
 
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference
+    private UserEntity userEntity;
 
     @Embedded
     private Money money;
@@ -45,12 +47,12 @@ public class WalletEntity {
     private List<WalletTransactionEntity> transactions;
 
     @Builder
-    public WalletEntity(UUID publicId, String walletName, Long userId,
+    public WalletEntity(UUID publicId, String walletName, UserEntity userEntity,
                         Money money, WalletStatus walletStatus, LocalDateTime createdAt,
                         List<WalletTransactionEntity> transactions) {
         this.publicId = publicId != null ? publicId : UUID.randomUUID();
         this.walletName = walletName;
-        this.userId = userId;
+        this.userEntity = userEntity;
         this.money = money != null ? money : new Money(0L);
         this.walletStatus = walletStatus != null ? walletStatus : WalletStatus.ACTIVE;
         this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
@@ -60,7 +62,6 @@ public class WalletEntity {
     public void updateFromDomain(Wallet wallet) {
         this.publicId = wallet.getPublicId();
         this.walletName = wallet.getWalletName();
-        this.userId = wallet.getUserId();
         this.money = wallet.getMoney();
         this.walletStatus = wallet.getWalletStatus();
         this.createdAt = wallet.getCreatedAt();
@@ -78,5 +79,9 @@ public class WalletEntity {
                         .amount(domain.getMoney().getAmount())
                         .build()
         );
+    }
+
+    public void updateUser(UserEntity userEntity) {
+        this.userEntity = userEntity;
     }
 }

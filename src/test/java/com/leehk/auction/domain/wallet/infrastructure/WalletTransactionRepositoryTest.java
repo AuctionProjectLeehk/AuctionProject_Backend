@@ -1,8 +1,11 @@
 package com.leehk.auction.domain.wallet.infrastructure;
 
 import com.leehk.auction.domain.money.domain.Money;
+import com.leehk.auction.domain.user.infrastructure.UserEntity;
+import com.leehk.auction.domain.user.infrastructure.UserRepository;
 import com.leehk.auction.domain.wallet.enums.TransactionType;
 import com.leehk.auction.domain.wallet.enums.WalletStatus;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,11 +26,27 @@ class WalletTransactionRepositoryTest {
     @Autowired
     private WalletRepository walletRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    private UserEntity testUserEntity;
+
+    @BeforeEach
+    void setUp() {
+        testUserEntity = userRepository.save(UserEntity.builder()
+                .publicId(UUID.randomUUID())
+                .email("random@test.com")
+                .name("testUser")
+                .password("testPassword")
+                .nickname("testUserNickname")
+                .build());
+    }
+
     private WalletEntity makeWalletEntity(long index) {
         return WalletEntity.builder()
                 .publicId(UUID.randomUUID())
+                .userEntity(testUserEntity)
                 .walletName("testWallet" + index)
-                .userId(100L)
                 .money(new Money(10000L))
                 .walletStatus(WalletStatus.ACTIVE)
                 .build();

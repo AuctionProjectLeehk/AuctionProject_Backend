@@ -2,6 +2,7 @@ package com.leehk.auction.domain.user.converter;
 
 import com.leehk.auction.domain.user.domain.User;
 import com.leehk.auction.domain.user.infrastructure.UserEntity;
+import com.leehk.auction.domain.wallet.converter.WalletConverter;
 
 public class UserConverter {
 
@@ -18,7 +19,7 @@ public class UserConverter {
     }
     
     public static UserEntity domainToEntity(User user) {
-        return UserEntity.builder()
+        UserEntity userEntity = UserEntity.builder()
                 .id(user.getId())
                 .publicId(user.getPublicId())
                 .email(user.getEmail())
@@ -27,5 +28,15 @@ public class UserConverter {
                 .nickname(user.getNickname())
                 .joinDate(user.getJoinDate())
                 .build();
+
+        if (user.getWallets() != null && !user.getWallets().isEmpty()) {
+            userEntity.getWalletEntities().addAll(
+                    user.getWallets().stream()
+                            .map(wallet -> WalletConverter.domainToEntity(wallet, userEntity))
+                            .toList()
+            );
+        }
+
+        return userEntity;
     }
 }

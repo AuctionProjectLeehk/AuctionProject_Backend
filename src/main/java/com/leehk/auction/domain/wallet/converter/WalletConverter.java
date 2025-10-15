@@ -1,6 +1,7 @@
 package com.leehk.auction.domain.wallet.converter;
 
 import com.leehk.auction.domain.money.domain.Money;
+import com.leehk.auction.domain.user.infrastructure.UserEntity;
 import com.leehk.auction.domain.wallet.domain.Wallet;
 import com.leehk.auction.domain.wallet.domain.WalletTransaction;
 import com.leehk.auction.domain.wallet.infrastructure.WalletEntity;
@@ -13,7 +14,7 @@ public class WalletConverter {
     public static Wallet entityToDomain(WalletEntity walletEntity) {
         Wallet wallet = Wallet.builder()
                 .publicId(walletEntity.getPublicId())
-                .userId(walletEntity.getUserId())
+                .userId(walletEntity.getUserEntity().getId())
                 .walletName(walletEntity.getWalletName())
                 .build();
 
@@ -38,11 +39,11 @@ public class WalletConverter {
         return wallet;
     }
 
-    public static WalletEntity domainToEntity(Wallet wallet) {
+    public static WalletEntity domainToEntity(Wallet wallet, UserEntity userEntity) {
         WalletEntity walletEntity = WalletEntity.builder()
                 .publicId(wallet.getPublicId())
                 .walletName(wallet.getWalletName())
-                .userId(wallet.getUserId())
+                .userEntity(userEntity)
                 .money(wallet.getMoney())
                 .walletStatus(wallet.getWalletStatus())
                 .createdAt(wallet.getCreatedAt())

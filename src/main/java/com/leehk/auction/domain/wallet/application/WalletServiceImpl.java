@@ -2,6 +2,7 @@ package com.leehk.auction.domain.wallet.application;
 
 import com.leehk.auction.domain.money.domain.Money;
 import com.leehk.auction.domain.user.application.UserService;
+import com.leehk.auction.domain.user.infrastructure.UserRepository;
 import com.leehk.auction.domain.wallet.converter.WalletConverter;
 import com.leehk.auction.domain.wallet.domain.Wallet;
 import com.leehk.auction.domain.wallet.enums.WalletStatus;
@@ -21,23 +22,27 @@ public class WalletServiceImpl implements WalletService {
 
     private final UserService userService;
     private final WalletRepository walletRepository;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
     public Wallet createWallet(Long userId, String walletName) {
-        walletRepository.findByUserIdAndWalletName(userId, walletName)
+        walletRepository.findByUserEntity_IdAndWalletName(userId, walletName)
                 .ifPresent(w -> { throw new CustomException(ErrorCode.WALLET_ALREADY_EXIST); });
 
         Wallet wallet = Wallet.createWallet(userId, walletName);
 
-        walletRepository.save(WalletConverter.domainToEntity(wallet));
+        walletRepository.save(WalletConverter.domainToEntity(
+                wallet,
+                userRepository.findById(userId).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
+        ));
 
         return wallet;
     }
 
     @Override
     public Wallet getWalletByUserId(Long userId) {
-        WalletEntity savedWalletEntity = walletRepository.findByUserId(userId)
+        WalletEntity savedWalletEntity = walletRepository.findByUserEntity_Id(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.WALLET_NOT_FOUND));
 
         return WalletConverter.entityToDomain(savedWalletEntity);

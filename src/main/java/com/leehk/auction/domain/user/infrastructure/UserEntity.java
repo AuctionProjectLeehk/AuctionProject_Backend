@@ -1,6 +1,7 @@
 package com.leehk.auction.domain.user.infrastructure;
 
 import com.leehk.auction.domain.auction.infrastructure.AuctionEntity;
+import com.leehk.auction.domain.wallet.infrastructure.WalletEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -41,6 +42,14 @@ public class UserEntity {
 
     @OneToMany(mappedBy = "ownerEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<AuctionEntity> auctionEntities = new ArrayList<>();
+
+    @OneToMany(mappedBy = "userEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private final List<WalletEntity> walletEntities = new ArrayList<>();
+
+    public void addWallet(WalletEntity walletEntity) {
+        walletEntities.add(walletEntity);
+        walletEntity.updateUser(this);
+    }
 
     @PrePersist
     public void prePersist() {

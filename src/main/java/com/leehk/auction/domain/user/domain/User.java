@@ -34,6 +34,10 @@ public class User {
         this.auctions.add(auction);
     }
 
+    public void updateWallets(List<Wallet> wallets) {
+        this.wallets = wallets;
+    }
+
     public void addWallet(Wallet wallet) {
         this.wallets.add(wallet);
     }
